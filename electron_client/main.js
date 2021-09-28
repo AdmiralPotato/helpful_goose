@@ -8,39 +8,56 @@ console.log('GOOSE TIME', {
   BrowserWindow
 })
 
-const windowSize = 256
+const windowSize = 128
 const screenMotionFraction = 1 / 2
 const tau = Math.PI * 2
 
-function moveWindow (browserWindow) {
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize
+let lastMoveData
+function moveGoose (browserWindow) {
+  const bounds = screen.getPrimaryDisplay().bounds
   const time = Date.now() / 1000
   const phase = time / 5
-  const centerX = width / 2
-  const centerY = height / 2
+  const centerX = bounds.width / 2
+  const centerY = bounds.height / 2
   const smallerAxis = Math.min(
     centerX,
     centerY
   )
   const motionRadius = smallerAxis * screenMotionFraction
   const halfWindowSize = windowSize / 2
-  browserWindow.setBounds({
-    x: Math.round(centerX - halfWindowSize + (Math.cos(phase * tau) * motionRadius)),
-    y: Math.round(centerY - halfWindowSize + (Math.sin(phase * tau) * motionRadius)),
-    width: windowSize,
-    height: windowSize
-  })
+  browserWindow.setBounds(bounds)
+  const angle = phase * tau
+  const moveData = {
+    smallerAxis,
+    bounds,
+    x: centerX - halfWindowSize + (Math.cos(angle) * motionRadius),
+    y: centerY - halfWindowSize + (Math.sin(angle * 2) * motionRadius / 2),
+    angle: 0
+  }
+  if (lastMoveData) {
+    const diffX = moveData.x - lastMoveData.x
+    const diffY = moveData.y - lastMoveData.y
+    moveData.angle = ((-Math.atan2(diffX, diffY) / tau * 360) + 90) % 360
+  }
+  lastMoveData = moveData
+  browserWindow.webContents.executeJavaScript(`
+    move(${JSON.stringify(moveData)})
+  `)
 }
 
 function createWindow (whenReadyEvent) {
+  const bounds = screen.getPrimaryDisplay().bounds
   const browserWindow = new BrowserWindow({
-    width: windowSize,
-    height: windowSize,
+    x: bounds.x,
+    y: bounds.y,
+    width: bounds.width,
+    height: bounds.height,
     frame: false,
     transparent: true,
     resizable: false,
     alwaysOnTop: true
   })
+  browserWindow.setIgnoreMouseEvents(true)
   console.log('appReady!', {
     win: browserWindow,
     whenReadyEvent
@@ -53,7 +70,7 @@ function createWindow (whenReadyEvent) {
       })
       setInterval(
         () => {
-          moveWindow(browserWindow)
+          moveGoose(browserWindow)
         },
         1000 / 60
       )
