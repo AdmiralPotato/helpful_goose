@@ -10,12 +10,13 @@
 </head>
 <body>
     <svg
-        id="target"
-        viewBox="-5 -5 10 10"
+        id="app"
+        :view-box.camel="viewBox"
     >
         <defs>
             <g
                 id="goose-shape"
+                transform="scale(0.00025)"
             >
                 <path
                     id="triangle"
@@ -37,14 +38,22 @@
                     ry="1"
                 />
             </g>
+            <g
+                id="goose-eye"
+                transform="scale(0.00025)"
+            >
+                <ellipse
+                    fill="#fff"
+                    cx="0.4"
+                    rx="0.3"
+                    ry="0.3"
+                />
+            </g>
         </defs>
         <g
-            id="goose"
-            transform="
-                scale(200)
-                translate(0 0)
-                rotate(-30)
-            "
+            v-for="cursor in cursors"
+            :key="cursor.id"
+            :transform="cursor.transform"
         >
             <use
                 href="#goose-shape"
@@ -56,10 +65,13 @@
             <use
                 href="#goose-shape"
             />
+            <use
+                href="#goose-eye"
+                :transform="cursor.pointerTransform"
+            />
         </g>
     </svg>
-    <script
-        src="./browser.js"
-    ></script>
+    <script src="./node_modules/vue/dist/vue.js"></script>
+    <script src="./electron_browser.js"></script>
 </body>
 </html>

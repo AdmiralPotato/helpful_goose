@@ -1,52 +1,124 @@
+require('dotenv').config()
+const path = require('path')
 const {
   app,
   BrowserWindow,
+  ipcMain,
   screen
 } = require('electron')
-console.log('GOOSE TIME', {
-  app,
-  BrowserWindow
-})
+const ioClient = require('socket.io-client')
+const socketHostAddress = process.env.API_HOST || 'http://localhost:3000/'
 
-const windowSize = 128
-const screenMotionFraction = 1 / 2
-const tau = Math.PI * 2
-
-let lastMoveData
-function moveGoose (browserWindow) {
-  const bounds = screen.getPrimaryDisplay().bounds
-  const time = Date.now() / 1000
-  const phase = time / 5
-  const centerX = bounds.width / 2
-  const centerY = bounds.height / 2
-  const smallerAxis = Math.min(
-    centerX,
-    centerY
-  )
-  const motionRadius = smallerAxis * screenMotionFraction
-  const halfWindowSize = windowSize / 2
-  browserWindow.setBounds(bounds)
-  const angle = phase * tau
-  const moveData = {
-    smallerAxis,
-    bounds,
-    x: centerX - halfWindowSize + (Math.cos(angle) * motionRadius),
-    y: centerY - halfWindowSize + (Math.sin(angle * 2) * motionRadius / 2),
-    angle: 0
+function getScreenBounds () {
+  const temp = screen.getPrimaryDisplay().bounds
+  return {
+    ...temp
+    // width: Math.round(temp.width / 2)
   }
-  if (lastMoveData) {
-    const diffX = moveData.x - lastMoveData.x
-    const diffY = moveData.y - lastMoveData.y
-    moveData.angle = ((-Math.atan2(diffX, diffY) / tau * 360) + 90) % 360
-  }
-  lastMoveData = moveData
-  browserWindow.webContents.executeJavaScript(`
-    move(${JSON.stringify(moveData)})
-  `)
 }
 
-function createWindow (whenReadyEvent) {
-  const bounds = screen.getPrimaryDisplay().bounds
+let lastBounds = {
+  x: 0,
+  y: 0,
+  width: 10,
+  height: 10
+}
+let lastBoundsString = JSON.stringify(lastBounds)
+function sendLastBounds (browserWindow) {
+  browserWindow.webContents.executeJavaScript(
+    `updateBounds(${lastBoundsString})`
+  )
+}
+function updateBounds (browserWindow, socket) {
+  const bounds = getScreenBounds()
+  const dataString = JSON.stringify(bounds)
+  if (dataString !== lastBoundsString) {
+    browserWindow.setBounds(bounds)
+    socket.emit('bounds', bounds)
+    lastBounds = bounds
+    lastBoundsString = dataString
+    sendLastBounds(browserWindow)
+  }
+}
+
+let lastUsersString = '{}'
+function sendLastUsers (browserWindow) {
+  browserWindow.webContents.executeJavaScript(
+    `updateUsers(${lastUsersString})`
+  )
+}
+function updateUsers (browserWindow, users) {
+  const dataString = JSON.stringify(users)
+  if (dataString !== lastUsersString) {
+    browserWindow.webContents.executeJavaScript(
+      `updateUsers(${dataString})`
+    )
+    lastUsersString = dataString
+    sendLastUsers(browserWindow)
+  }
+}
+
+function initNetwork () {
+  const socket = ioClient(
+    socketHostAddress,
+    {
+      autoConnect: false,
+      auth: {
+        client: 'electron'
+      }
+    }
+  )
+  socket.on('disconnect', (disconnectReason) => {
+    console.log(
+      'network.client disconnected from server:',
+      {
+        socketHostAddress,
+        disconnectReason
+      }
+    )
+  })
+  socket.on('welcome', (sessionId) => {
+    socket.emit('bounds', lastBounds)
+    console.log(
+      'network.client joined server:',
+      JSON.stringify({
+        socketHostAddress,
+        sessionId
+      })
+    )
+    const sessionIdBrowserWindow = new BrowserWindow({
+      width: 768,
+      height: 128,
+      frame: false,
+      transparent: true
+    })
+    sessionIdBrowserWindow.loadFile('./session_link.html')
+      .then(() => {
+        sessionIdBrowserWindow.webContents.executeJavaScript(
+          `updateLink("${socketHostAddress}?sessionId=${sessionId}")`
+        )
+      }).catch((error) => {
+        console.error(error)
+      })
+  })
+  socket.connect((connectError) => {
+    if (connectError) {
+      console.log(
+        'network.client connectError!',
+        connectError
+      )
+    } else {
+      console.log(
+        'network.client connected!'
+      )
+    }
+  })
+  return socket
+}
+
+function handleAppReady (whenReadyEvent) {
+  const socket = initNetwork()
+  const bounds = getScreenBounds()
   const browserWindow = new BrowserWindow({
     x: bounds.x,
     y: bounds.y,
@@ -55,30 +127,47 @@ function createWindow (whenReadyEvent) {
     frame: false,
     transparent: true,
     resizable: false,
-    alwaysOnTop: true
+    alwaysOnTop: true,
+    webPreferences: {
+      preload: path.resolve('./preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true,
+      enableRemoteModule: false
+    }
   })
   browserWindow.setIgnoreMouseEvents(true)
+
+  ipcMain.on('loaded', () => {
+    // for when the electron browser window refreshes, send data it should already have had
+    sendLastBounds(browserWindow)
+    sendLastUsers(browserWindow)
+  })
+
   console.log('appReady!', {
     win: browserWindow,
     whenReadyEvent
   })
 
-  browserWindow.loadFile('./index.html')
-    .then((windowLoadEventData) => {
-      console.log('Window loaded!', {
-        windowLoadEventData
-      })
+  browserWindow.loadFile('./electron_browser.html')
+    .then(() => {
+      console.log('Window loaded!')
       setInterval(
         () => {
-          moveGoose(browserWindow)
+          updateBounds(browserWindow, socket)
         },
         1000 / 60
       )
+      socket.on('users', (users) => {
+        updateUsers(
+          browserWindow,
+          users
+        )
+      })
     })
 }
 
 app.whenReady()
-  .then(createWindow)
+  .then(handleAppReady)
 
 app.on('window-all-closed', (closeEvent) => {
   console.log('ME HAVE BEEN MURDERED!!', {

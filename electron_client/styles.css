@@ -5,8 +5,31 @@ body {
 
 }
 
+body > svg {
+    display: block;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+}
+
+#session-link-page {
+    position: relative;
+}
+#session_link {
+    text-align: center;
+    background-color: #333;
+    border: 1px solid #666;
+    color: #aaa;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 4px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    font-size: 24px;
 }
