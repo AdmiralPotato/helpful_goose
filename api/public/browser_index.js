@@ -13,6 +13,7 @@ const socket = window.io.connect(
 window.app = new window.Vue({
   el: '#appTarget',
   data: {
+    editingUser: undefined,
     addUserMode: false,
     localUsers: {},
     bounds: {
@@ -27,6 +28,8 @@ window.app = new window.Vue({
       const user = {
         controller: controller,
         id: id,
+        angle: 0,
+        force: 0,
         connected: false
       }
       const newLocalUsers = Object.assign(
@@ -35,7 +38,7 @@ window.app = new window.Vue({
       )
       newLocalUsers[controller] = user
       window.app.localUsers = newLocalUsers
-      if (controller !== 'touch') {
+      if (controller !== window.INPUT_TYPE_MOUSETOUCH) {
         window.attachGamepadInputToUser(socket, user)
       }
       console.log(`Created user:${user.id} with controller:${controller}`)
@@ -51,19 +54,21 @@ window.app = new window.Vue({
         user
       )
     },
-    disconnectUser: function (user) {
+    disconnectUserFromSocket: function (user) {
       socket.emit('disconnectUser', { id: user.id })
+      console.log(`Disconnected user:${user.id} with controller:${user.controller}`)
+      this.removeUserFromLocalData(user)
+    },
+    removeUserFromLocalData: function (user) {
       const newLocalUsers = Object.assign(
         {},
         window.app.localUsers
       )
       delete newLocalUsers[user.controller]
       window.app.localUsers = newLocalUsers
-      console.log(`Disconnected user:${user.id} with controller:${user.controller}`)
-    },
-    removeUser: function (user) {
-      user.disconnectController()
-      window.Vue.delete(window.app.localUsers, user.controller)
+      if (user.disconnectController) {
+        user.disconnectController()
+      }
       console.log(`Removed user:${user.id} with controller:${user.controller}`)
     }
   },
@@ -74,13 +79,36 @@ window.app = new window.Vue({
           :localUsers="localUsers"
           :bounds="bounds"
       />
-      <button
-        class="add-user"
+      <div
+        class="manage-users"
         v-if="!addUserMode"
-        @click="addUserMode = true"
-      >+ Add User</button>
+      >
+        <div>
+          <button
+            class="button-add-user"
+            @click="addUserMode = true"
+          >+ Add User</button>
+        </div>
+        <div
+          v-for="(localUser, controller) in localUsers"
+          :key="controller"
+        >
+          <button
+            class="button-edit-user"
+            @click="
+              editingUser = localUser;
+              addUserMode = true
+            "
+          >✏️ Edit {{controller}}</button>
+          <button
+            class="button-delete-user"
+            @click="disconnectUserFromSocket(localUser)"
+          >x</button>
+        </div>
+      </div>
       <edit-user
         v-if="addUserMode"
+        :user="editingUser"
         @cancel="addUserMode = false"
         @save="updateUser"
       ></edit-user>
@@ -92,9 +120,12 @@ socket.on('confirmUpdateUser', (id) => {
   const user = window.app.getUserById(id)
   if (user) {
     user.connected = true
-    if (user.controller === window.INPUT_TYPE_MOUSETOUCH) {
-      window.attachTouchInputToUser(socket, user)
-    }
+    const attachInput = (
+      user.controller === window.INPUT_TYPE_MOUSETOUCH
+        ? window.attachTouchInputToUser
+        : window.attachGamepadInputToUser
+    )
+    attachInput(socket, user)
   } else {
     console.error('Umm... the server asked us to connect a local user that we do not have.', id)
   }
@@ -120,7 +151,7 @@ socket.on('users', function (users) {
 socket.on('removeUser', function (userId) {
   const user = window.app.getUserById(userId)
   if (user) {
-    window.app.removeUser(user)
+    window.app.removeUserFromLocalData(user)
   } else {
     console.error('Umm... the server asked us to disconect a user that we do not have.', userId)
   }

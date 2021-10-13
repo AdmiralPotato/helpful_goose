@@ -12,12 +12,14 @@ const joystickOptions = {
 window.attachTouchInputToUser = (socket, user) => {
   const touchInput = window.nipplejs.create(joystickOptions)
   const moveListener = (allJoystickValues, currentJoystickValues) => {
+    user.force = currentJoystickValues.force
+    user.angle = currentJoystickValues.angle.radian
     socket.emit(
       'change',
       {
         id: user.id,
-        force: currentJoystickValues.force,
-        angle: currentJoystickValues.angle.radian
+        force: user.force,
+        angle: user.angle
       }
     )
   }
@@ -26,13 +28,11 @@ window.attachTouchInputToUser = (socket, user) => {
     socket.emit('release', { id: user.id })
   }
 
-  const disconnectTouch = () => {
+  user.disconnectController = () => {
     touchInput.off('move', moveListener)
     touchInput.off('end', endListener)
     touchInput.destroy()
   }
-
-  user.disconnectController = disconnectTouch
 
   touchInput.on('move', moveListener)
   touchInput.on('end', endListener)
