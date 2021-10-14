@@ -128,6 +128,7 @@ function handleAppReady (whenReadyEvent) {
     transparent: true,
     resizable: false,
     alwaysOnTop: true,
+    hasShadow: false,
     webPreferences: {
       preload: path.resolve('./preload.js'),
       nodeIntegration: false,
