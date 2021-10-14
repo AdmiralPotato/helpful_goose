@@ -16,7 +16,7 @@
         <defs>
             <g
                 id="goose-shape"
-                transform="scale(0.00025)"
+                transform="scale(0.5)"
             >
                 <path
                     id="triangle"
@@ -40,7 +40,7 @@
             </g>
             <g
                 id="goose-eye"
-                transform="scale(0.00025)"
+                transform="scale(0.5)"
             >
                 <ellipse
                     fill="#fff"
@@ -63,27 +63,79 @@
                     "
                 />
             </g>
+            <g
+                id="goose-action"
+                transform="scale(0.5)"
+            >
+                <path
+                    stroke-linejoin="round"
+                    stroke-linecap="round"
+                    d="
+                        M 5 0
+                        L 8 0
+                    "
+                />
+                <path
+                    stroke-linejoin="round"
+                    stroke-linecap="round"
+                    transform="rotate(20)"
+                    d="
+                        M 6 0
+                        L 7.5 0
+                    "
+                />
+                <path
+                    stroke-linejoin="round"
+                    stroke-linecap="round"
+                    transform="rotate(-20)"
+                    d="
+                        M 6 0
+                        L 7.5 0
+                    "
+                />
+            </g>
         </defs>
         <g
-            v-for="cursor in cursors"
-            :key="cursor.id"
-            :transform="cursor.transform"
+            class="cursors"
+            :transform="'scale(' + bounds.width + ')'"
         >
-            <use
-                href="#goose-shape"
-                stroke="#000"
-                stroke-width="1"
-                stroke-linejoin="round"
-                stroke-linecap="round"
-            />
-            <use
-                href="#goose-shape"
-            />
-            <use
-                href="#goose-eye"
-                :transform="cursor.pointerTransform"
-            />
+            <g
+                v-for="cursor in cursors"
+                :key="cursor.id"
+                :transform="cursor.transform"
+            >
+                <g
+                    v-if="cursor.action"
+                    :transform="'scale(' + cursor.action + ')'"
+                >
+                    <use
+                        href="#goose-action"
+                        stroke="#000"
+                        stroke-width="1.5"
+                    />
+                    <use
+                        href="#goose-action"
+                        stroke="#fff"
+                        stroke-width="0.5"
+                    />
+                </g>
+                <use
+                    href="#goose-shape"
+                    stroke="#000"
+                    stroke-width="1"
+                    stroke-linejoin="round"
+                    stroke-linecap="round"
+                />
+                <use
+                    href="#goose-shape"
+                />
+                <use
+                    href="#goose-eye"
+                    :transform="cursor.pointerTransform"
+                />
+            </g>
         </g>
+        
     </svg>
     <script src="./node_modules/vue/dist/vue.js"></script>
     <script src="./electron_browser.js"></script>

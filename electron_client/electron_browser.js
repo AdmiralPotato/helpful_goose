@@ -21,7 +21,6 @@ window.app = new window.Vue({
       ].join(' ')
     },
     cursors () {
-      const scale = this.bounds.width
       return Object.entries(this.users).map(([id, user]) => {
         return Object.assign(
           {},
@@ -29,10 +28,9 @@ window.app = new window.Vue({
           {
             pointerTransform: 'rotate(' + (((user.inputAngle - user.angle) / tau) * 360) + ')',
             transform: `
-              scale(${scale})
               translate(${user.x} ${user.y})
               rotate(${(user.angle / tau) * 360})
-              scale(${user.radius * scale})
+              scale(${user.radius})
             `
           }
         )

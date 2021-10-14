@@ -36,7 +36,8 @@ function createInstance (
       'x',
       'y',
       'angle',
-      'inputAngle'
+      'inputAngle',
+      'action'
     ],
     prepUserDataForClientSide: () => {
       const result = {}
@@ -60,16 +61,19 @@ function createInstance (
       socket.emit('serverStart', serverStart)
       socket.emit('bounds', session.bounds)
       socket.userMap = {} // this is because there can be multiple participants on each web client
-      socket.on('updateUser', function (user) {
+      socket.on('updateUser', (user) => {
         session.updateUser(socket, user)
       })
-      socket.on('change', function (moveData) {
+      socket.on('change', (moveData) => {
         session.controlChange(socket, moveData)
       })
-      socket.on('release', function (releaseData) {
+      socket.on('release', (releaseData) => {
         session.controlRelease(socket, releaseData)
       })
-      socket.on('disconnectUser', function (disconnectUserData) {
+      socket.on('action', (actionData) => {
+        session.controlAction(socket, actionData)
+      })
+      socket.on('disconnectUser', (disconnectUserData) => {
         const user = socket.userMap[disconnectUserData.id]
         if (user) {
           session.removeUser(user)
@@ -99,6 +103,7 @@ function createInstance (
           inputAngle: 0,
           inputForce: 0,
           force: 0,
+          action: 0,
           onTime: null,
           socket: socket,
           lastActiveTime: Date.now(),
@@ -163,6 +168,15 @@ function createInstance (
         user.lastActiveTime = Date.now()
       } else {
         console.error('Cheating! Someone is trying to stop a cursor that is not on their socket!')
+      }
+    },
+    controlAction: (socket, actionData) => {
+      const user = socket.userMap[actionData.id]
+      if (user) {
+        user.action = actionData.action
+        user.lastActiveTime = Date.now()
+      } else {
+        console.error('Cheating! Someone is trying to action a cursor that is not on their socket!')
       }
     },
     updateBounds (bounds) {

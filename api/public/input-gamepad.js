@@ -81,7 +81,7 @@ const convertLowLevelEventToHigherLevelEvent = (event) => {
     x: 0,
     y: 0,
     angle: 0,
-    action: false
+    action: 0
   }
   const centered = (
     Math.abs(event.axes[0]) < deadzone &&
@@ -99,7 +99,7 @@ const convertLowLevelEventToHigherLevelEvent = (event) => {
       gamepadEvents.emit('move', controller)
     }
   }
-  const buttonsToAction = (
+  const actionLevel = ( // A float value. Variable strength honk.
     event.buttons[0] || // A & ❌
     event.buttons[1] || // B & ⏺
     event.buttons[2] || // X & ■
@@ -110,11 +110,12 @@ const convertLowLevelEventToHigherLevelEvent = (event) => {
     event.buttons[7] || // Trigger Right Bottom
     event.buttons[9] // Start
   )
-  if (!controller.action && buttonsToAction) {
-    controller.action = buttonsToAction
+  if (controller.action !== actionLevel) {
+    // a change has occurred
+    console.log('action', actionLevel)
+    controller.action = actionLevel
     gamepadEvents.emit('action', controller)
   }
-  controller.action = buttonsToAction
 }
 
 gamepadEvents.addEventListener(
@@ -129,7 +130,14 @@ const deg = tau / 360
 window.attachGamepadInputToUser = (socket, user) => {
   const actionListener = (event) => {
     if (event.id === user.controller) {
-      // TODO: HONK!!!
+      // HONK!!!
+      socket.emit(
+        'action',
+        {
+          id: user.id,
+          action: event.action
+        }
+      )
     }
   }
   const moveListener = (event) => {
