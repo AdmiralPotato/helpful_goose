@@ -25,6 +25,9 @@ body {
   color: #ccc;
   overflow: hidden;
 }
+body > div {
+  height: 100%;
+}
 * {
   margin: 0;
   padding: 0;
@@ -78,4 +81,5 @@ svg .hit {
   position: absolute;
   top: 0;
   width: 100%;
+  z-index: 1000;
 }

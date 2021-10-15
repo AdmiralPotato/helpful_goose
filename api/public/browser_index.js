@@ -73,7 +73,7 @@ window.app = new window.Vue({
     }
   },
   template: `
-    <div>
+    <div id="appTarget">
       <page-main
           :userMap="userMap"
           :localUsers="localUsers"
