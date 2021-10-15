@@ -30,15 +30,15 @@ window.Vue.component('page-main', {
     >
       <shape-defs></shape-defs>
       <g
-          class="cursors"
-          :transform="'scale('+bounds.width+')'"
+        class="cursors"
+        :transform="'scale('+bounds.width+')'"
       >
-        <ship
-          v-for="ship in userMap"
-          v-bind="ship"
-          :isLocalUser="isLocalUser(ship)"
-          :key="ship.id"
-        ></ship>
+        <avatar-goose
+          v-for="user in userMap"
+          :user="user"
+          :isLocalUser="isLocalUser(user)"
+          :key="user.id"
+        ></avatar-goose>
       </g>
       <rect
         class="bounding-rect"

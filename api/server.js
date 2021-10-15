@@ -10,12 +10,20 @@ const port = process.env.PORT || 3000
 
 const clientDependencyMap = {
   '/vue': 'node_modules/vue/dist',
-  '/nipplejs': 'node_modules/nipplejs/dist'
+  '/nipplejs': 'node_modules/nipplejs/dist',
+  '/shared': '../electron_client/shared'
 }
 
 app.use('/', express.static('public'))
 Object.keys(clientDependencyMap).forEach((key) => {
-  app.use(key, express.static(path.join(__dirname, clientDependencyMap[key])))
+  app.use(
+    key,
+    express.static(
+      path.resolve(
+        path.join(__dirname, clientDependencyMap[key])
+      )
+    )
+  )
 })
 
 sessionManager.init(io)

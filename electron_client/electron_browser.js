@@ -1,5 +1,3 @@
-const tau = Math.PI * 2
-
 window.app = new window.Vue({
   el: '#app',
   data: {
@@ -19,24 +17,26 @@ window.app = new window.Vue({
         this.bounds.width,
         this.bounds.height
       ].join(' ')
-    },
-    cursors () {
-      return Object.entries(this.users).map(([id, user]) => {
-        return Object.assign(
-          {},
-          user,
-          {
-            pointerTransform: 'rotate(' + (((user.inputAngle - user.angle) / tau) * 360) + ')',
-            transform: `
-              translate(${user.x} ${user.y})
-              rotate(${(user.angle / tau) * 360})
-              scale(${user.radius})
-            `
-          }
-        )
-      })
     }
-  }
+  },
+  template: `
+    <svg
+      id="app"
+      :view-box.camel="viewBox"
+    >
+      <shape-defs></shape-defs>
+      <g
+        class="cursors"
+        :transform="'scale(' + bounds.width + ')'"
+      >
+        <avatar-goose
+          v-for="user in users"
+          :key="user.id"
+          :user="user"
+        ></avatar-goose>
+      </g>
+    </svg>
+  `
 })
 
 window.updateBounds = (bounds) => {

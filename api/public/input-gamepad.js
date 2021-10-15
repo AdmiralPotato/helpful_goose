@@ -112,7 +112,7 @@ const convertLowLevelEventToHigherLevelEvent = (event) => {
   )
   if (controller.action !== actionLevel) {
     // a change has occurred
-    console.log('action', actionLevel)
+    // console.log('action', actionLevel)
     controller.action = actionLevel
     gamepadEvents.emit('action', controller)
   }
