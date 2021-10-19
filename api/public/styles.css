@@ -47,25 +47,6 @@ svg {
   display: block;
   width: 100%;
   height: 100%;
-  color: #fff;
-  fill: transparent;
-}
-
-svg * {
-  stroke-linejoin: round;
-  stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
-  stroke-width: 0.25vmin;
-  stroke: currentColor;
-  fill: inherit;
-}
-
-svg .fill {
-  fill: currentColor;
-}
-
-svg .hit {
-  opacity: 0.5;
 }
 
 .manage-users {
