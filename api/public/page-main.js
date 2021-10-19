@@ -31,15 +31,15 @@ window.Vue.component('page-main', {
       <shape-defs></shape-defs>
       <defs>
         <rect
-            id="bounding-rect"
-            :width="bounds.width"
-            :height="bounds.height"
+          id="bounding-rect"
+          :width="bounds.width"
+          :height="bounds.height"
         />
         <clipPath id="bounding-rect-mask">
           <use
-              stroke="none"
-              fill="#fff"
-              xlink:href="#bounding-rect"
+            stroke="none"
+            fill="#fff"
+            xlink:href="#bounding-rect"
           />
         </clipPath>
       </defs>

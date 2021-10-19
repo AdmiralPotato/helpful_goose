@@ -22,42 +22,58 @@ window.Vue.component('shape-defs', {
           d="M2,1A1.01269,1.01269,0,0,0,1.99484.89776.99969.99969,0,0,0,1.97968.79847L1.97033.75724A.0535.0535,0,0,0,1.90257.719L1.526.83623a.0537.0537,0,0,0-.03622.06251c0,.00017.006.03333.00768.05014a.50773.50773,0,0,1,0,.10224c-.00171.01681-.00764.05-.00768.05014a.0537.0537,0,0,0,.03622.06251l.37661.11726a.0535.0535,0,0,0,.06776-.03827l.00935-.04123a.99969.99969,0,0,0,.01516-.09929A1.01269,1.01269,0,0,0,2,1Z"
         />
         <g
+          id="goose-head-circle"
+        >
+          <ellipse
+            fill="#fff"
+            rx="1"
+            ry="1"
+          />
+        </g>
+        <g
           id="goose-head"
-          transform="scale(0.5)"
         >
           <path
             id="triangle"
             fill="#fc8b34"
             d="
-              M 1.21 -1.21
-              L 4 0
-              L 1.21 1.21
+              M 0.605 -0.605
+              L 2 0
+              L 0.605 0.605
             "
           />
-            <ellipse
-              fill="#fff"
-              rx="2"
-              ry="2"
-            />
-            <ellipse
-              fill="#000"
-              rx="1"
-              ry="1"
-            />
+          <use
+            xlink:href="#goose-head-circle"
+          />
         </g>
+        <clipPath id="goose-head-mask">
+          <ellipse
+            fill="#fff"
+            rx="1.1"
+            ry="1.1"
+          />
+        </clipPath>
         <g
           id="goose-body"
-          transform="scale(0.5)"
         >
           <ellipse
             fill="#fff"
-            cx="1.25"
-            rx="2.5"
-            ry="1.5"
+            cx="0.625"
+            rx="1.25"
+            ry="0.75"
           />
         </g>
         <g
-          id="goose-eye"
+            id="goose-eye"
+        >
+          <ellipse
+            fill="#000"
+            rx="0.5"
+            ry="0.5"
+          />
+        </g>
+        <g
+          id="goose-pupil"
           transform="scale(0.5)"
         >
           <ellipse
@@ -66,17 +82,21 @@ window.Vue.component('shape-defs', {
             rx="0.3"
             ry="0.3"
           />
+        </g>
+        <g
+          id="goose-pointer"
+        >
           <path
             id="triangle"
             fill="#fc8b34"
             stroke="#fc8b34"
-            stroke-width="0.25"
+            stroke-width="0.125"
             stroke-linejoin="round"
             stroke-linecap="round"
             d="
-              M 5 -0.5
-              L 5.5 0
-              L 5 0.5
+              M 2.5 -0.25
+              L 2.75 0
+              L 2.5 0.25
               Z
             "
           />

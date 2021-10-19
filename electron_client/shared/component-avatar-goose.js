@@ -9,7 +9,13 @@ window.Vue.component('avatar-goose', {
     cursor () {
       const user = this.user
       const degrees = (user.angle / window.tau) * 360
+      const bodyDegrees = ((user.angle + Math.PI) / window.tau) * 360
       const pointerDegrees = (user.inputAngle / window.tau) * 360
+      const eyeSlideX = user.angle < 0
+        ? Math.cos(user.angle) * -1
+        : Math.cos(user.angle) * 1
+      const eyeSlideXDistance = 1
+      const eyeSlideY = Math.sin(user.angle) * 0.5
       return Object.assign(
         {},
         user,
@@ -17,6 +23,13 @@ window.Vue.component('avatar-goose', {
           bodyDirection: (Math.abs(user.angle) > (Math.PI * 0.5)) ? 1 : -1,
           degrees: degrees,
           headTransform: `rotate(${degrees})`,
+          leftEyeTransform: `
+            translate(${eyeSlideX - eyeSlideXDistance} ${eyeSlideY})
+          `,
+          rightEyeTransform: `
+            translate(${eyeSlideX + eyeSlideXDistance} ${eyeSlideY})
+          `,
+          bodyTransform: `rotate(${bodyDegrees})`,
           pointerTransform: `rotate(${pointerDegrees})`,
           transform: `
               translate(${user.x} ${user.y})
@@ -44,12 +57,11 @@ window.Vue.component('avatar-goose', {
         />
         <use
           href="#goose-body"
-          y="2.25"
           stroke="#000"
-          stroke-width="0.5"
+          stroke-width="0.25"
           stroke-linejoin="round"
           stroke-linecap="round"
-          :transform="'scale(' + cursor.bodyDirection + ' 1)'"
+          :transform="'translate(0,2.25)' + cursor.bodyTransform"
         />
         <use
           class="goose-neck-white"
@@ -82,7 +94,7 @@ window.Vue.component('avatar-goose', {
         <use
           href="#goose-head"
           stroke="#000"
-          stroke-width="1"
+          stroke-width="0.5"
           stroke-linejoin="round"
           stroke-linecap="round"
         />
@@ -90,8 +102,29 @@ window.Vue.component('avatar-goose', {
           href="#goose-head"
         />
       </g>
+      <g
+        class="cropped-eyes"
+        clip-path="url(#goose-head-mask)"
+      >
+        <use
+          href="#goose-eye"
+          :transform="cursor.leftEyeTransform"
+        />
+        <use
+          href="#goose-eye"
+          :transform="cursor.rightEyeTransform"
+        />
+        <use
+          href="#goose-pupil"
+          :transform="cursor.leftEyeTransform + cursor.pointerTransform"
+        />
+        <use
+          href="#goose-pupil"
+          :transform="cursor.rightEyeTransform + cursor.pointerTransform"
+        />
+      </g>
       <use
-        href="#goose-eye"
+        href="#goose-pointer"
         :transform="cursor.pointerTransform"
       />
     </g>
