@@ -17,6 +17,9 @@ window.app = new window.Vue({
         this.bounds.width,
         this.bounds.height
       ].join(' ')
+    },
+    yAxisSortedUserMap () {
+      return window.yAxisSortedUserMap(this.users)
     }
   },
   template: `
@@ -30,7 +33,7 @@ window.app = new window.Vue({
         :transform="'scale(' + bounds.width + ')'"
       >
         <avatar-goose
-          v-for="user in users"
+          v-for="user in yAxisSortedUserMap"
           :key="user.id"
           :user="user"
         ></avatar-goose>

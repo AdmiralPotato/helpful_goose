@@ -9,6 +9,9 @@ window.Vue.component('page-main', {
     localUserIds () {
       return Object.values(this.localUsers).map((user) => { return user.id })
     },
+    yAxisSortedUserMap () {
+      return window.yAxisSortedUserMap(this.userMap)
+    },
     viewBox () {
       return [
         0,
@@ -51,7 +54,7 @@ window.Vue.component('page-main', {
           :transform="'scale('+bounds.width+')'"
         >
           <avatar-goose
-            v-for="user in userMap"
+            v-for="user in yAxisSortedUserMap"
             :user="user"
             :isLocalUser="isLocalUser(user)"
             :key="user.id"

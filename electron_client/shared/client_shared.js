@@ -11,3 +11,8 @@ window.randomHash = function (length) {
 window.INPUT_TYPE_MOUSETOUCH = 'mouse/touch'
 
 window.tau = Math.PI * 2
+
+window.yAxisSortedUserMap = (userMap) => {
+  return Object.values(userMap)
+    .sort((a, b) => a.y - b.y)
+}
