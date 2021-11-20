@@ -9,7 +9,7 @@ html, body{
   height: 100%;
 }
 html {
-  font-size: 8px;
+  font-size: 24px;
   -webkit-text-size-adjust: 100%;
 }
 body {
@@ -19,7 +19,7 @@ body {
   font-weight: 400;
   font-style: normal;
   vertical-align: top;
-  font-family: 'Exo 2', sans-serif;
+  font-family: sans-serif;
   text-align: left;
   text-decoration: none;
   color: #ccc;

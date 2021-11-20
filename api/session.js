@@ -37,6 +37,7 @@ function createInstance (
       'y',
       'angle',
       'inputAngle',
+      'name',
       'action'
     ],
     prepUserDataForClientSide: () => {
