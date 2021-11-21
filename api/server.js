@@ -11,6 +11,7 @@ const port = process.env.PORT || 3000
 const clientDependencyMap = {
   '/vue': 'node_modules/vue/dist',
   '/nipplejs': 'node_modules/nipplejs/dist',
+  '/base64-arraybuffer': 'node_modules/base64-arraybuffer/dist',
   '/shared': '../electron_client/shared'
 }
 

@@ -1,5 +1,7 @@
 require('dotenv').config()
 const path = require('path')
+const base64ArrayBuffer = require('base64-arraybuffer')
+const structures = require('./shared/structures')
 const {
   app,
   BrowserWindow,
@@ -41,7 +43,7 @@ function updateBounds (browserWindow, socket) {
   }
 }
 
-let lastUsersString = '{}'
+let lastUsersString = '[]'
 function sendLastUsers (browserWindow) {
   browserWindow.webContents.executeJavaScript(
     `updateUsers(${lastUsersString})`
@@ -158,10 +160,31 @@ function handleAppReady (whenReadyEvent) {
         },
         1000 / 60
       )
-      socket.on('users', (users) => {
+      let completeGameState = {
+        users: []
+      }
+      socket.on(structures.GameState.eventKey, (base64BufferString) => {
+        const gameStateBuffer = base64ArrayBuffer.decode(base64BufferString)
+        const users = structures.GameState.decode(gameStateBuffer)
+        structures.mergeCompleteStateWithPartialState(
+          completeGameState,
+          { users }
+        )
         updateUsers(
           browserWindow,
-          users
+          completeGameState.users
+        )
+      })
+      socket.on(structures.CompleteGameState.eventKey, (base64BufferString) => {
+        const completeGameStateBuffer = base64ArrayBuffer.decode(base64BufferString)
+        completeGameState = structures.CompleteGameState.decode(completeGameStateBuffer)
+        updateBounds(
+          browserWindow,
+          completeGameState.bounds
+        )
+        updateUsers(
+          browserWindow,
+          completeGameState.users
         )
       })
     })

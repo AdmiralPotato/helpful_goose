@@ -1,5 +1,7 @@
+const base64ArrayBuffer = window['base64-arraybuffer']
 const sessionIdRegex = /sessionId=([a-z0-9]*)/gi
 const sessionId = (sessionIdRegex.exec(window.location.search) || [])[1]
+const structures = window.gooseBinaryStructures
 
 const socket = window.io.connect(
   '//',
@@ -20,7 +22,7 @@ window.app = new window.Vue({
       width: 1280,
       height: 720
     },
-    userMap: {}
+    users: []
   },
   methods: {
     createLocalUser: function (controller) {
@@ -75,7 +77,7 @@ window.app = new window.Vue({
   template: `
     <div id="appTarget">
       <page-main
-          :userMap="userMap"
+          :users="users"
           :localUsers="localUsers"
           :bounds="bounds"
       />
@@ -144,8 +146,20 @@ socket.on('bounds', function (data) {
   console.log('Bounds:', data)
   window.app.bounds = data
 })
-socket.on('users', function (users) {
-  window.app.userMap = users
+
+socket.on(structures.GameState.eventKey, (base64BufferString) => {
+  const gameStateBuffer = base64ArrayBuffer.decode(base64BufferString)
+  const users = structures.GameState.decode(gameStateBuffer)
+  structures.mergeCompleteStateWithPartialState(
+    window.app,
+    { users }
+  )
+})
+socket.on(structures.CompleteGameState.eventKey, (base64BufferString) => {
+  const completeGameStateBuffer = base64ArrayBuffer.decode(base64BufferString)
+  const decoded = structures.CompleteGameState.decode(completeGameStateBuffer)
+  window.app.bounds = decoded.bounds
+  window.app.users = decoded.users
 })
 
 socket.on('removeUser', function (userId) {

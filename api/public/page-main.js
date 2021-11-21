@@ -1,6 +1,6 @@
 window.Vue.component('page-main', {
   props: {
-    userMap: Object,
+    users: Array,
     localUsers: Object,
     bounds: Object,
     showColorPicker: Boolean
@@ -9,8 +9,8 @@ window.Vue.component('page-main', {
     localUserIds () {
       return Object.values(this.localUsers).map((user) => { return user.id })
     },
-    yAxisSortedUserMap () {
-      return window.yAxisSortedUserMap(this.userMap)
+    yAxisSortedUsers () {
+      return window.yAxisSortedUsers(this.users)
     },
     viewBox () {
       return [
@@ -19,11 +19,6 @@ window.Vue.component('page-main', {
         this.bounds.width,
         this.bounds.height
       ].join(' ')
-    }
-  },
-  methods: {
-    isLocalUser (ship) {
-      return this.localUserIds.includes(ship.id)
     }
   },
   template: `
@@ -54,9 +49,8 @@ window.Vue.component('page-main', {
           :transform="'scale('+bounds.width+')'"
         >
           <avatar-goose
-            v-for="user in yAxisSortedUserMap"
+            v-for="user in yAxisSortedUsers"
             :user="user"
-            :isLocalUser="isLocalUser(user)"
             :key="user.id"
           ></avatar-goose>
         </g>

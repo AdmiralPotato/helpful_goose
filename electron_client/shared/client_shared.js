@@ -12,7 +12,7 @@ window.INPUT_TYPE_MOUSETOUCH = 'mouse/touch'
 
 window.tau = Math.PI * 2
 
-window.yAxisSortedUserMap = (userMap) => {
-  return Object.values(userMap)
+window.yAxisSortedUsers = (users) => {
+  return users.slice()
     .sort((a, b) => a.y - b.y)
 }

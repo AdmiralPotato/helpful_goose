@@ -1,4 +1,6 @@
+const base64ArrayBuffer = require('base64-arraybuffer')
 const userControls = require('./user_controls.js')
+const structures = require('../electron_client/shared/structures.js')
 const serverStart = Date.now()
 
 function createInstance (
@@ -27,40 +29,28 @@ function createInstance (
         session.bounds
       )
       session.bootUsersThatNeedBooting()
-      const filteredUserData = session.prepUserDataForClientSide()
-      room.emit('users', filteredUserData)
+      const arrayBuffer = structures.GameState.encode(Object.values(session.userMap))
+      room.emit(
+        structures.GameState.eventKey,
+        base64ArrayBuffer.encode(arrayBuffer)
+      )
     },
-    maskProps: [
-      '',
-      'id',
-      'x',
-      'y',
-      'angle',
-      'inputAngle',
-      'name',
-      'action'
-    ],
-    prepUserDataForClientSide: () => {
-      const result = {}
-      Object.values(session.userMap).forEach((user) => {
-        const sanitizedUser = JSON.stringify(user, (key, value) => {
-          let result = value
-          if (!session.maskProps.includes(key)) {
-            result = undefined
-          }
-          return result
-        })
-        const parsedUser = JSON.parse(sanitizedUser)
-        parsedUser.radius = session.cursorRadius
-        result[user.id] = parsedUser
+    updateCompleteGameStateForAllUsers () {
+      const arrayBuffer = structures.CompleteGameState.encode({
+        cursorRadius: session.cursorRadius,
+        bounds: session.bounds,
+        users: Object.values(session.userMap)
       })
-      return result
+      room.emit(
+        structures.CompleteGameState.eventKey,
+        base64ArrayBuffer.encode(arrayBuffer)
+      )
     },
     addSocket (socket) {
       session.browserSocketMap[socket.id] = socket
       socket.join(sessionId)
       socket.emit('serverStart', serverStart)
-      socket.emit('bounds', session.bounds)
+      session.updateCompleteGameStateForAllUsers()
       socket.userMap = {} // this is because there can be multiple participants on each web client
       socket.on('updateUser', (user) => {
         session.updateUser(socket, user)
@@ -105,6 +95,7 @@ function createInstance (
           inputForce: 0,
           force: 0,
           action: 0,
+          scale: 0.5,
           onTime: null,
           socket: socket,
           lastActiveTime: Date.now(),
@@ -118,6 +109,7 @@ function createInstance (
         socket.userMap[id] = user
         session.userMap[id] = user
         socket.emit('confirmUpdateUser', user.id)
+        session.updateCompleteGameStateForAllUsers()
         console.log(`Connecting user:${id} to socket:${socket.id}`)
       } else if (userAlreadyInSession && userAlreadyInSocket) {
         Object.assign(
@@ -132,10 +124,12 @@ function createInstance (
       delete user.socket.userMap[user.id]
       delete user.socket
       delete session.userMap[user.id]
+      session.updateCompleteGameStateForAllUsers()
     },
     bootUser: (user) => {
       user.socket.emit('removeUser', user.id)
       session.removeUser(user)
+      session.updateCompleteGameStateForAllUsers()
     },
     bootUsersThatNeedBooting: () => {
       Object.values(session.userMap).forEach((user) => {
@@ -182,7 +176,7 @@ function createInstance (
     },
     updateBounds (bounds) {
       session.bounds = bounds
-      room.emit('bounds', session.bounds)
+      session.updateCompleteGameStateForAllUsers()
     },
     endSession () {
       room.emit('game_over')
@@ -195,6 +189,7 @@ function createInstance (
   electronClientSocket.join(sessionId)
   electronClientSocket.on('bounds', session.updateBounds)
   global.session = session
+  console.log(`Session "${sessionId}" was created!`)
   return session
 }
 

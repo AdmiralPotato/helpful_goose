@@ -7,7 +7,7 @@ window.app = new window.Vue({
       width: window.innerWidth,
       height: window.innerHeight
     },
-    users: {}
+    users: []
   },
   computed: {
     viewBox () {
@@ -18,8 +18,8 @@ window.app = new window.Vue({
         this.bounds.height
       ].join(' ')
     },
-    yAxisSortedUserMap () {
-      return window.yAxisSortedUserMap(this.users)
+    yAxisSortedUsers () {
+      return window.yAxisSortedUsers(this.users)
     }
   },
   template: `
@@ -33,7 +33,7 @@ window.app = new window.Vue({
         :transform="'scale(' + bounds.width + ')'"
       >
         <avatar-goose
-          v-for="user in yAxisSortedUserMap"
+          v-for="user in yAxisSortedUsers"
           :key="user.id"
           :user="user"
         ></avatar-goose>

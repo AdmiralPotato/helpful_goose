@@ -11,9 +11,10 @@ window.Vue.component('avatar-goose', {
       const degrees = (user.angle / window.tau) * 360
       const bodyDegrees = ((user.angle + Math.PI) / window.tau) * 360
       const pointerDegrees = (user.inputAngle / window.tau) * 360
+      const cos = Math.cos(user.angle)
       const eyeSlideX = user.angle < 0
-        ? Math.cos(user.angle) * -1
-        : Math.cos(user.angle) * 1
+        ? -cos
+        : cos
       const eyeSlideXDistance = 1
       const eyeSlideY = Math.sin(user.angle) * 0.5
       return Object.assign(
@@ -32,9 +33,9 @@ window.Vue.component('avatar-goose', {
           bodyTransform: `rotate(${bodyDegrees})`,
           pointerTransform: `rotate(${pointerDegrees})`,
           transform: `
-              translate(${user.x} ${user.y})
-              scale(${user.radius})
-            `
+            translate(${user.x} ${user.y})
+            scale(${user.combinedScale / 8})
+          `
         }
       )
     }
