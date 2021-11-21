@@ -167,6 +167,6 @@ socket.on('removeUser', function (userId) {
   if (user) {
     window.app.removeUserFromLocalData(user)
   } else {
-    console.error('Umm... the server asked us to disconect a user that we do not have.', userId)
+    console.error('Umm... the server asked us to disconnect a user that we do not have.', userId)
   }
 })

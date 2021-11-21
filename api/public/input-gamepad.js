@@ -15,13 +15,13 @@ const gamepadSampler = {
     idsConnectedNow.splice(0, idsConnectedNow.length)
     let gamepadsSampled = 0
     gamepads.forEach((gamepad) => {
-      if (gamepad && gamepad.mapping === 'standard') {
+      if (gamepad) {
         gamepadsSampled += 1
         const id = 'gamepad-' + gamepad.index + '-' + gamepad.id
         const lastSample = gamepadSampler.controllers[id]
         const currentSample = {
           id: id,
-          axes: gamepad.axes,
+          axes: gamepad.axes || [],
           buttons: gamepad.buttons.map((buttons) => { return buttons.value })
         }
         currentSample.string = JSON.stringify(currentSample)
@@ -83,8 +83,8 @@ const convertLowLevelEventToHigherLevelEvent = (event) => {
     angle: 0,
     action: 0
   }
-  const x = event.axes[0]
-  const y = event.axes[1]
+  const x = event.axes[0] || 0
+  const y = event.axes[1] || 0
   const centered = (
     Math.abs(x) < deadzone &&
     Math.abs(y) < deadzone
