@@ -25,26 +25,6 @@ window.app = new window.Vue({
     users: []
   },
   methods: {
-    createLocalUser: function (controller) {
-      const id = window.randomHash(5)
-      const user = {
-        controller: controller,
-        id: id,
-        angle: 0,
-        force: 0,
-        connected: false
-      }
-      const newLocalUsers = Object.assign(
-        {},
-        window.app.localUsers
-      )
-      newLocalUsers[controller] = user
-      window.app.localUsers = newLocalUsers
-      if (controller !== window.INPUT_TYPE_MOUSETOUCH) {
-        window.attachGamepadInputToUser(socket, user)
-      }
-      console.log(`Created user:${user.id} with controller:${controller}`)
-    },
     getUserById: function (id) {
       return Object.values(window.app.localUsers).filter((user) => { return user.id === id }).pop()
     },
@@ -118,6 +98,8 @@ window.app = new window.Vue({
   `
 })
 
+const inputEmitter = structures.createStructureEmitter(socket, base64ArrayBuffer)
+
 socket.on('confirmUpdateUser', (id) => {
   const user = window.app.getUserById(id)
   if (user) {
@@ -127,7 +109,7 @@ socket.on('confirmUpdateUser', (id) => {
         ? window.attachTouchInputToUser
         : window.attachGamepadInputToUser
     )
-    attachInput(socket, user)
+    attachInput(inputEmitter, user)
   } else {
     console.error('Umm... the server asked us to connect a local user that we do not have.', id)
   }

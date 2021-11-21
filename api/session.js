@@ -55,15 +55,15 @@ function createInstance (
       socket.on('updateUser', (user) => {
         session.updateUser(socket, user)
       })
-      socket.on('change', (moveData) => {
-        session.controlChange(socket, moveData)
-      })
-      socket.on('release', (releaseData) => {
-        session.controlRelease(socket, releaseData)
-      })
-      socket.on('action', (actionData) => {
-        session.controlAction(socket, actionData)
-      })
+      structures.createStructureListener(
+        socket,
+        base64ArrayBuffer,
+        {
+          change: session.controlChange,
+          release: session.controlRelease,
+          action: session.controlAction
+        }
+      )
       socket.on('disconnectUser', (disconnectUserData) => {
         const user = socket.userMap[disconnectUserData.id]
         if (user) {

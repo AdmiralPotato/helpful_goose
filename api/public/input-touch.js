@@ -1,4 +1,4 @@
-window.attachTouchInputToUser = (socket, user) => {
+window.attachTouchInputToUser = (inputEmitter, user) => {
   const joystickOptions = {
     zone: document.getElementById('appTarget'),
     color: '#fff',
@@ -13,27 +13,33 @@ window.attachTouchInputToUser = (socket, user) => {
   const keyDownListener = (event) => {
     if (event.key === ' ') {
       event.preventDefault()
-      socket.emit('action', {
-        id: user.id,
-        action: 1
-      })
+      inputEmitter(
+        'action',
+        {
+          id: user.id,
+          action: 1
+        }
+      )
     }
   }
 
   const keyUpListener = (event) => {
     if (event.key === ' ') {
       event.preventDefault()
-      socket.emit('action', {
-        id: user.id,
-        action: 0
-      })
+      inputEmitter(
+        'action',
+        {
+          id: user.id,
+          action: 0
+        }
+      )
     }
   }
 
   const moveListener = (allJoystickValues, currentJoystickValues) => {
     user.force = currentJoystickValues.force
     user.angle = currentJoystickValues.angle.radian
-    socket.emit(
+    inputEmitter(
       'change',
       {
         id: user.id,
@@ -44,7 +50,7 @@ window.attachTouchInputToUser = (socket, user) => {
   }
 
   const endListener = () => {
-    socket.emit('release', { id: user.id })
+    inputEmitter('release', { id: user.id })
   }
 
   document.body.addEventListener('keydown', keyDownListener, true)

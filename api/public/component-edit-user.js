@@ -41,7 +41,7 @@ window.Vue.component('edit-user', {
     return {
       connectedGamepads: window.gamepadSampler.controllerIdsConnectedRightNow,
       user: this.inputUser || {
-        id: window.randomHash(5),
+        id: window.randomHash(4),
         name: 'Goose',
         controller: window.INPUT_TYPE_MOUSETOUCH,
         connected: false

@@ -130,11 +130,11 @@ gamepadSampler.init()
 
 const tau = Math.PI * 2
 const deg = tau / 360
-window.attachGamepadInputToUser = (socket, user) => {
+window.attachGamepadInputToUser = (inputEmitter, user) => {
   const actionListener = (event) => {
     if (event.id === user.controller) {
       // HONK!!!
-      socket.emit(
+      inputEmitter(
         'action',
         {
           id: user.id,
@@ -154,7 +154,7 @@ window.attachGamepadInputToUser = (socket, user) => {
           (event.y * event.y)
         )
         user.force = Math.min(1, distance * distance)
-        socket.emit(
+        inputEmitter(
           'change',
           {
             id: user.id,
@@ -167,7 +167,7 @@ window.attachGamepadInputToUser = (socket, user) => {
   }
   const endListener = (event) => {
     if (event.id !== user.controller || !user.connected) { return }
-    socket.emit('release', { id: user.id })
+    inputEmitter('release', { id: user.id })
   }
 
   user.disconnectController = () => {

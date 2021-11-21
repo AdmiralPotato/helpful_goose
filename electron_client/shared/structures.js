@@ -26,23 +26,30 @@ const initGooseDataStructures = () => {
   const decodeNormalized16 = (value) => value / uint16Max
   const encodeAngle = (angle) => Math.round(((angle + pi) / tau) * uint16Max)
   const decodeAngle = (value) => ((value / uint16Max) * tau) - pi
-  const encodeAction = (axis) => Math.round(axis * uint8Max)
+  const encodeAction = (action) => Math.round(Math.min(1, action) * uint8Max)
   const decodeAction = (value) => value / uint8Max
   const sanitizeUint = (value) => parseInt(Math.abs(value)) || 0
   const structures = {
     UserAction: {
       // typedef struct {
-      //   uint8_t id,
+      //   char id[4],
       //   uint8_t action
-      // } UserAction = 2
+      // } UserAction = 5
+      eventKey: 'a', // for action
       encode (userAction) {
-        const arrayBuffer = new ArrayBuffer(2)
+        const arrayBuffer = new ArrayBuffer(5)
         const dataView = new DataView(arrayBuffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
-        const id = sanitizeUint(userAction.id)
+        const id = textEncoder.encode(userAction.id)
         const action = encodeAction(userAction.action)
 
         let offset = 0
-        dataView.setUint8(offset, id)
+        dataView.setUint8(offset, id[0])
+        offset += 1
+        dataView.setUint8(offset, id[1])
+        offset += 1
+        dataView.setUint8(offset, id[2])
+        offset += 1
+        dataView.setUint8(offset, id[3])
         offset += 1
         dataView.setUint8(offset, action)
         offset += 1
@@ -51,8 +58,8 @@ const initGooseDataStructures = () => {
       decode (arrayBuffer) {
         const dataView = new DataView(arrayBuffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
         let offset = 0
-        const id = dataView.getUint8(offset)
-        offset += 1
+        const id = textDecoder.decode(arrayBuffer.slice(offset, offset + 4))
+        offset += 4
         const action = decodeAction(dataView.getUint8(offset))
         offset += 1
 
@@ -66,21 +73,29 @@ const initGooseDataStructures = () => {
     UserMove: {
       // typedef struct {
       //   uint16_t angle,
-      //   uint8_t id,
+      //   char id[4],
       //   uint8_t force
-      // } UserMove = 4
+      // } UserMove = 7
+      eventKey: 'm', // for move
       encode (userMove) {
-        const arrayBuffer = new ArrayBuffer(4)
+        const arrayBuffer = new ArrayBuffer(7)
         const dataView = new DataView(arrayBuffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
-        const id = sanitizeUint(userMove.id)
+        const id = textEncoder.encode(userMove.id)
         const angle = encodeAngle(userMove.angle)
         const force = encodeAction(userMove.force)
 
         let offset = 0
         dataView.setUint16(offset, angle)
         offset += 2
-        dataView.setUint8(offset, id)
+        dataView.setUint8(offset, id[0])
         offset += 1
+        dataView.setUint8(offset, id[1])
+        offset += 1
+        dataView.setUint8(offset, id[2])
+        offset += 1
+        dataView.setUint8(offset, id[3])
+        offset += 1
+
         dataView.setUint8(offset, force)
         offset += 1
         return arrayBuffer
@@ -90,8 +105,8 @@ const initGooseDataStructures = () => {
         let offset = 0
         const angle = decodeAngle(dataView.getUint16(offset))
         offset += 2
-        const id = dataView.getUint8(offset)
-        offset += 1
+        const id = textDecoder.decode(arrayBuffer.slice(offset, offset + 4))
+        offset += 4
         const force = decodeAction(dataView.getUint8(offset))
         offset += 1
 
@@ -100,6 +115,20 @@ const initGooseDataStructures = () => {
           angle,
           force,
           byteLength: offset
+        }
+      }
+    },
+    UserRelease: {
+      // typedef struct {
+      //   char id[4],
+      // } UserRelease = 4
+      eventKey: 'r', // for release
+      encode (userMove) {
+        return textEncoder.encode(userMove.id).buffer
+      },
+      decode (arrayBuffer) {
+        return {
+          id: textDecoder.decode(arrayBuffer)
         }
       }
     },
@@ -263,7 +292,7 @@ const initGooseDataStructures = () => {
       //   uint8_t userCount,
       //   UserState users[userCount]
       // } GameState = 1 + 5 * 10 = 51 bytes per frame
-      eventKey: 's',
+      eventKey: 's', // for state
       encode (users) {
         const userLength = new Uint8Array(1)
         userLength[0] = users.length
@@ -297,7 +326,7 @@ const initGooseDataStructures = () => {
       //   uint8_t userCount,
       //   UserDetails userDetails[userCount]
       // } AllUserDetails = 1 + 200 bytes per frame
-      eventKey: 'd',
+      eventKey: 'd', // for details
       encode (users) {
         const userLength = new Uint8Array(1)
         userLength[0] = users.length
@@ -334,7 +363,7 @@ const initGooseDataStructures = () => {
       //   UserState users[userCount]
       //   UserDetail userDetails[userCount]
       // } CompleteGameState = 4 + 1 + 45 + 200 bytes per frame = 250 bytes
-      eventKey: 'a',
+      eventKey: 'c', // for complete
       encode (complete) {
         const cursorRadius = new Uint16Array(1)
         cursorRadius[0] = encodeNormalized16(complete.cursorRadius)
@@ -402,6 +431,43 @@ const initGooseDataStructures = () => {
         }
       })
       return complete
+    },
+    createStructureEmitter (socket, base64ArrayBuffer) {
+      const eventStructureMap = {
+        action: structures.UserAction,
+        change: structures.UserMove,
+        release: structures.UserRelease
+      }
+      return (eventType, data) => {
+        const structure = eventStructureMap[eventType]
+        if (!structure) {
+          throw new Error(`Invalid eventType: ${eventType}`)
+        }
+        // console.log(eventType, data)
+        socket.emit(
+          structure.eventKey,
+          base64ArrayBuffer.encode(structure.encode(data))
+        )
+      }
+    },
+    createStructureListener (socket, base64ArrayBuffer, handlerMap) {
+      const eventStructureMap = {
+        action: structures.UserAction,
+        change: structures.UserMove,
+        release: structures.UserRelease
+      }
+      Object.entries(handlerMap).forEach(([eventType, handler]) => {
+        const structure = eventStructureMap[eventType]
+        if (!structure) {
+          throw new Error(`Invalid eventType: ${eventType}`)
+        }
+        socket.on(structure.eventKey, (base64ByteArrayString) => {
+          handler(
+            socket,
+            structure.decode(base64ArrayBuffer.decode(base64ByteArrayString))
+          )
+        })
+      })
     }
   }
 
