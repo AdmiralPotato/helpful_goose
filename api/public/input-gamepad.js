@@ -83,21 +83,24 @@ const convertLowLevelEventToHigherLevelEvent = (event) => {
     angle: 0,
     action: 0
   }
+  const x = event.axes[0]
+  const y = event.axes[1]
   const centered = (
-    Math.abs(event.axes[0]) < deadzone &&
-    Math.abs(event.axes[1]) < deadzone
+    Math.abs(x) < deadzone &&
+    Math.abs(y) < deadzone
   )
   if (
-    controller.x !== event.axes[0] ||
-    controller.y !== event.axes[1]
+    controller.x !== x ||
+    controller.y !== y
   ) {
-    controller.x = event.axes[0]
-    controller.y = event.axes[1]
-    if (centered) {
+    controller.x = x
+    controller.y = y
+    if (centered && !controller.centered) {
       gamepadEvents.emit('end', controller)
-    } else {
+    } else if (!centered) {
       gamepadEvents.emit('move', controller)
     }
+    controller.centered = centered
   }
   const actionLevel = ( // A float value. Variable strength honk.
     event.buttons[0] || // A & ❌
