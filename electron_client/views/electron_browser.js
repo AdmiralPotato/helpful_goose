@@ -50,4 +50,4 @@ window.updateUsers = (users) => {
   window.app.users = users
 }
 
-window.electron.send('loaded')
+window.electron.send('overlayLoaded')

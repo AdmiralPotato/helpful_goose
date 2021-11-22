@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body id="screen-select-page">
+    <div id="app" class="modal">
+        <div class="modal-header">
+            <h1>Where is Goose's home?</h1>
+        </div>
+        <p
+            v-if="!thumbnails.length"
+        >Loading</p>
+        <div
+            v-else
+        >
+            <p
+                class="error"
+                style="visibility: hidden"
+                :style="{
+                    visibility: showError ? 'visible' : 'hidden'
+                }"
+            >Select a screen to proceed</p>
+            <div
+                class="screen-holder"
+            >
+                <label
+                    v-for="(thumbnail, index) in thumbnails"
+                    class="screen-select"
+                    :class="{
+                        active: screenIndex === index
+                    }"
+                >
+                    <input
+                        type="radio"
+                        :value="index"
+                        v-model="screenIndex"
+                    >
+                    <img
+                        :src="thumbnail"
+                    />
+                </label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button
+                @click="save"
+            >Confirm</button>
+        </div>
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <script src="./screen_select.js"></script>
+</body>
+</html>

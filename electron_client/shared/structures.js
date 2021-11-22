@@ -410,7 +410,8 @@ const initGooseDataStructures = () => {
             user,
             userDetails
           )
-          user.combinedScale = user.scale * cursorRadius
+          const apectScaleRatio = Math.max(1, bounds.height / bounds.width)
+          user.combinedScale = user.scale * cursorRadius * apectScaleRatio
           offset += userDetails.byteLength
         }
         return {
@@ -450,11 +451,13 @@ const initGooseDataStructures = () => {
         )
       }
     },
-    createStructureListener (socket, base64ArrayBuffer, handlerMap) {
+    attachStructureListeners (socket, base64ArrayBuffer, handlerMap) {
       const eventStructureMap = {
         action: structures.UserAction,
         change: structures.UserMove,
-        release: structures.UserRelease
+        release: structures.UserRelease,
+        update: structures.GameState,
+        complete: structures.CompleteGameState
       }
       Object.entries(handlerMap).forEach(([eventType, handler]) => {
         const structure = eventStructureMap[eventType]

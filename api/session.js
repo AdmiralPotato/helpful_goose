@@ -55,7 +55,7 @@ function createInstance (
       socket.on('updateUser', (user) => {
         session.updateUser(socket, user)
       })
-      structures.createStructureListener(
+      structures.attachStructureListeners(
         socket,
         base64ArrayBuffer,
         {
