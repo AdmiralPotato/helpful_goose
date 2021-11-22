@@ -304,7 +304,10 @@ function handleAppReady (whenReadyEvent) {
   })
   createTrayMenu()
   const socket = initNetwork()
-  openScreenSelectWindow()
+  const displays = screen.getAllDisplays()
+  if (displays.length > 1) {
+    openScreenSelectWindow()
+  }
   startOverlay(socket)
 }
 
