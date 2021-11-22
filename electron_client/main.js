@@ -17,8 +17,7 @@ const socketHostAddress = process.env.API_HOST || 'http://localhost:3000/'
 // should match `win32`, `win64`, but not `darwin`
 const iconType = (process.platform.indexOf('win') === -1) ? '.ico' : '.png'
 const windowIconPath = path.join(__dirname, '/images/helpful_goose-icon' + iconType)
-const trayIconPath = path.join(__dirname, '/images/helpful_goose-tray' + iconType)
-const trayIconTinyPath = path.join(__dirname, '/images/helpful_goose-tray-16.png')
+const trayIconPath = path.join(__dirname, '/images/helpful_goose-tray-16' + iconType)
 
 const mainViewPath = './views/electron_browser.html'
 const screenSelectPath = './views/screen_select.html'
@@ -207,7 +206,7 @@ let tray = null
 function createTrayMenu () {
   tray = new Tray(trayIconPath)
   const contextMenu = Menu.buildFromTemplate([
-    { label: 'Helpful Goose', icon: trayIconTinyPath, enabled: false },
+    { label: 'Helpful Goose', icon: trayIconPath, enabled: false },
     { type: 'separator' },
     { label: 'Select Screen', click: openScreenSelectWindow },
     { type: 'separator' },
