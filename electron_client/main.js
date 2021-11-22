@@ -14,7 +14,8 @@ const {
 const ioClient = require('socket.io-client')
 const socketHostAddress = process.env.API_HOST || 'http://localhost:3000/'
 
-const iconType = process.platform.includes('win') ? '.ico' : '.png'
+// should match `win32`, `win64`, but not `darwin`
+const iconType = (process.platform.indexOf('win') === -1) ? '.ico' : '.png'
 const windowIconPath = path.join(__dirname, '/images/helpful_goose-icon' + iconType)
 const trayIconPath = path.join(__dirname, '/images/helpful_goose-tray' + iconType)
 const trayIconTinyPath = path.join(__dirname, '/images/helpful_goose-tray-16.png')
