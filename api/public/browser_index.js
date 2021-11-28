@@ -129,20 +129,22 @@ socket.on('bounds', function (data) {
   window.app.bounds = data
 })
 
-socket.on(structures.GameState.eventKey, (base64BufferString) => {
-  const gameStateBuffer = base64ArrayBuffer.decode(base64BufferString)
-  const users = structures.GameState.decode(gameStateBuffer)
-  structures.mergeCompleteStateWithPartialState(
-    window.app,
-    { users }
-  )
-})
-socket.on(structures.CompleteGameState.eventKey, (base64BufferString) => {
-  const completeGameStateBuffer = base64ArrayBuffer.decode(base64BufferString)
-  const decoded = structures.CompleteGameState.decode(completeGameStateBuffer)
-  window.app.bounds = decoded.bounds
-  window.app.users = decoded.users
-})
+structures.attachStructureListeners(
+  socket,
+  base64ArrayBuffer,
+  {
+    update: (socket, users) => {
+      structures.mergeCompleteStateWithPartialState(
+        window.app,
+        { users }
+      )
+    },
+    complete: (socket, complete) => {
+      window.app.bounds = complete.bounds
+      window.app.users = complete.users
+    }
+  }
+)
 
 socket.on('removeUser', function (userId) {
   const user = window.app.getUserById(userId)

@@ -15,3 +15,5 @@ buttonElement.addEventListener('click', () => {
     500
   )
 })
+
+window.electron.send('sessionLinkLoad')

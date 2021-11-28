@@ -7,21 +7,22 @@ const {
   Menu,
   Tray,
   app,
+  clipboard,
+  desktopCapturer,
   ipcMain,
-  screen,
-  desktopCapturer
+  screen
 } = require('electron')
 const ioClient = require('socket.io-client')
 const socketHostAddress = process.env.API_HOST || 'http://localhost:3000/'
 
 // should match `win32`, `win64`, but not `darwin`
-const iconType = (process.platform.indexOf('win') === -1) ? '.ico' : '.png'
+const iconType = (process.platform.indexOf('win') === 0) ? '.ico' : '.png'
 const windowIconPath = path.join(__dirname, '/images/helpful_goose-icon' + iconType)
-const trayIconPath = path.join(__dirname, '/images/helpful_goose-tray-16' + iconType)
+const trayIconPath = path.join(__dirname, '/images/helpful_goose-tray-16.png')
 
-const mainViewPath = './views/electron_browser.html'
-const screenSelectPath = './views/screen_select.html'
-const sessionLinkPath = './views/session_link.html'
+const mainView = './views/electron_browser.html'
+const screenSelectView = './views/screen_select.html'
+const sessionLinkView = './views/session_link.html'
 
 const webPreferences = {
   preload: path.resolve('./preload.js'),
@@ -117,8 +118,23 @@ function updateUsers (users) {
   }
 }
 
+let sessionLink = ''
+let sessionLinkWindow = null
+function handleSessionLinkLoad () {
+  sessionLinkWindow.webContents.executeJavaScript(
+    `updateLink("${sessionLink}")`
+  )
+}
+function copySessionLink () {
+  clipboard.writeText(sessionLink)
+}
+ipcMain.on(
+  'sessionLinkLoad',
+  handleSessionLinkLoad
+)
+let socket = null
 function initNetwork () {
-  const socket = ioClient(
+  socket = ioClient(
     socketHostAddress,
     {
       autoConnect: false,
@@ -134,19 +150,29 @@ function initNetwork () {
         connectError
       )
     } else {
+      rebuildTrayMenu({
+        copySessionLink: { enabled: true },
+        sessionStatus: { label: 'Status: Connected' },
+        changeStatus: { label: 'Disconnect' }
+      })
       console.log(
         'network.client connected!'
       )
     }
   })
+  socket.on('connect_error', (/* error */) => {
+    rebuildTrayMenu({
+      copySessionLink: { enabled: false },
+      sessionStatus: { label: 'Status: Connection Error - reconnecting' },
+      changeStatus: { label: 'Disconnect' }
+    })
+  })
   socket.on('disconnect', (disconnectReason) => {
-    console.log(
-      'network.client disconnected from server:',
-      {
-        socketHostAddress,
-        disconnectReason
-      }
-    )
+    rebuildTrayMenu({
+      copySessionLink: { enabled: false },
+      sessionStatus: { label: 'Status: Disconnected' },
+      changeStatus: { label: 'Connect' }
+    })
   })
   socket.on('welcome', (sessionId) => {
     socket.emit('bounds', lastBounds)
@@ -157,20 +183,23 @@ function initNetwork () {
         sessionId
       })
     )
-    const sessionLinkWindow = new BrowserWindow({
+    sessionLinkWindow = new BrowserWindow({
       width: 768,
       height: 128,
       frame: false,
       resizable: false,
       icon: windowIconPath,
-      transparent: true
+      transparent: true,
+      webPreferences
     })
-    sessionLinkWindow.loadFile(sessionLinkPath)
-      .then(() => {
-        sessionLinkWindow.webContents.executeJavaScript(
-          `updateLink("${socketHostAddress}?sessionId=${sessionId}")`
-        )
-      }).catch((error) => {
+    sessionLink = `${socketHostAddress}?sessionId=${sessionId}`
+    rebuildTrayMenu({
+      copySessionLink: { enabled: true },
+      sessionStatus: { label: 'Status: Connected' },
+      changeStatus: { label: 'Disconnect' }
+    })
+    sessionLinkWindow.loadFile(sessionLinkView)
+      .catch((error) => {
         console.error(error)
       })
   })
@@ -202,19 +231,51 @@ function initNetwork () {
   return socket
 }
 
+function toggleSession () {
+  if (socket) {
+    if (socket.connected) {
+      socket.disconnect()
+      rebuildTrayMenu({
+        sessionStatus: { label: 'Status: User Disconnected' },
+        changeStatus: { label: 'Connect' }
+      })
+    } else {
+      socket.connect()
+      rebuildTrayMenu()
+    }
+  }
+}
+
 let tray = null
-function createTrayMenu () {
+function createTray () {
   tray = new Tray(trayIconPath)
-  const contextMenu = Menu.buildFromTemplate([
-    { label: 'Helpful Goose', icon: trayIconPath, enabled: false },
-    { type: 'separator' },
-    { label: 'Select Screen', click: openScreenSelectWindow },
-    { type: 'separator' },
-    { label: 'Quit', click () { app.quit() } }
-  ])
   tray.setToolTip('Helpful Goose')
+  rebuildTrayMenu()
+}
+
+// menu items may not be mutated after creation, so the simplest solution
+// seems to be to replace the whole context menu when a change is required.
+function rebuildTrayMenu (options) {
+  const overlap = options || {}
+  const keyedTemplate = {
+    header: { label: 'Helpful Goose', icon: trayIconPath, enabled: false },
+    sep0: { type: 'separator' },
+    sessionStatus: { label: 'Status: Starting', enabled: false },
+    changeStatus: { label: 'Disconnect', click: toggleSession },
+    copySessionLink: { label: 'Copy Session Link', click: copySessionLink, enabled: false },
+    sep1: { type: 'separator' },
+    selectScreen: { label: 'Select Screen', click: openScreenSelectWindow },
+    sep2: { type: 'separator' },
+    a: { label: 'Quit', click () { app.quit() } }
+  }
+  Object.entries(overlap).forEach(([key, value]) => {
+    Object.assign(
+      keyedTemplate[key],
+      value
+    )
+  })
+  const contextMenu = Menu.buildFromTemplate(Object.values(keyedTemplate))
   tray.setContextMenu(contextMenu)
-  tray._contextMenu = contextMenu
   return tray
 }
 
@@ -240,7 +301,7 @@ function startOverlay (socket) {
   })
   overlayWindow.setIgnoreMouseEvents(true)
 
-  overlayWindow.loadFile(mainViewPath)
+  overlayWindow.loadFile(mainView)
     .then(() => {
       console.log('Window loaded!')
       setupBoundsLoop(socket)
@@ -292,7 +353,7 @@ function openScreenSelectWindow () {
     transparent: true,
     webPreferences
   })
-  screenSelectWindow.loadFile(screenSelectPath)
+  screenSelectWindow.loadFile(screenSelectView)
     .catch((error) => {
       console.error(error)
     })
@@ -302,8 +363,8 @@ function handleAppReady (whenReadyEvent) {
   console.log('appReady!', {
     whenReadyEvent
   })
-  createTrayMenu()
-  const socket = initNetwork()
+  createTray()
+  initNetwork()
   const displays = screen.getAllDisplays()
   if (displays.length > 1) {
     openScreenSelectWindow()

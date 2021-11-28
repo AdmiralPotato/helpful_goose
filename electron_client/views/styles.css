@@ -36,6 +36,9 @@ button:active {
     background-color: #3f3f3f;
 }
 
+#session-link-page button {
+    border: 2px solid #444;
+}
 
 .error {
     color: #f66;

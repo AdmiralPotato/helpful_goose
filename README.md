@@ -8,7 +8,7 @@ Great for Pair Programming and Mentoring type situations. Supports multiple remo
 
 This project has two main objectives:
 
-1. To allow a remote collaborator to have a cursor that can point at things on the sharing party's screen, without the ability to make any changes to the sharing party's system.
+1. To allow a remote collaborator to have a cursor that can point at things on the sharing party's screen to reduce conversational overhead, without granting the ability to make any changes to the sharing party's system.
 2. To help a remote collaborator stay more engaged with the task on the remote screen with a gamepad or phone in hand to be able to control a graphical cursor, which really helps people who need a tactile/hands-on and interactive interface to stay focused.
 
 ----
@@ -22,21 +22,6 @@ git clone https://github.com/AdmiralPotato/helpful_goose.git
 ```
 
 There are two parts to the application.
-
-### Overlay Application
-
-This is the program you'll need run on the computer where you want to have some gooses overlaying on your screen. Please note that you'll also need to start up the `API & Web Server` below before the `Overlay Application` be able to connect and give you a session link to share with participants.
-
-To install the dependencies for the `Overlay Application`, run the following:
-```bash
-cd helpful_goose/electron_client
-npm install
-```
-
-To start it up, run the following in the `electron_client` folder:
-```bash
-npm run start
-```
 
 ### API & Web Server
 
@@ -54,6 +39,21 @@ npm run start
 ```
 
 If you want this to work over the internet, you'll need to host it somewhere publicly accessible, and copy the `.env.example` files to `.env` in both the `api` and the `electron_client` folders, and modify them to contain the network path and port where the API will be running.
+
+### Overlay Application
+
+This is the program you'll need run on the computer where you want to have some gooses overlaying on your screen. Please note that you'll also need to start up the `API & Web Server` below before the `Overlay Application` will be able to connect and give you a session link to share with participants.
+
+To install the dependencies for the `Overlay Application`, run the following:
+```bash
+cd helpful_goose/electron_client
+npm install
+```
+
+To start it up, run the following in the `electron_client` folder:
+```bash
+npm run start
+```
 
 ----
 
