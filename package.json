@@ -6,6 +6,10 @@
     "type": "git",
     "url": "git+https://github.com/AdmiralPotato/helpful_goose.git"
   },
+  "scripts": {
+    "preinstall": "cd api && npm install",
+    "start": "cd api && npm run start"
+  },
   "keywords": [
     "goose"
   ],
@@ -15,6 +19,9 @@
     "url": "https://github.com/AdmiralPotato/helpful_goose/issues"
   },
   "homepage": "https://github.com/AdmiralPotato/helpful_goose#readme",
+  "engines": {
+    "node": "14.x"
+  },
   "devDependencies": {
     "standard": "^16.0.4"
   }
