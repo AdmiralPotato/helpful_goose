@@ -31,22 +31,34 @@ const webPreferences = {
   enableRemoteModule: false
 }
 
-let screenIndex = 0
+let activeDisplayId = null
 let overlayWindow = null
 
 let boundsLoopInterval = null
 function getScreenBounds () {
   const displays = screen.getAllDisplays()
-  const currentDisplay = displays[screenIndex]
-  if (!currentDisplay) {
-    clearInterval(boundsLoopInterval)
-    openScreenSelectWindow()
-  } else {
-    return {
+  const currentDisplay = (
+    (activeDisplayId && displays.find((display) => display.id === activeDisplayId)) ||
+    displays[0] // fall back to the... uhh... most default? Probably?
+  )
+  let result = {
+    x: 0,
+    y: 0,
+    width: 320,
+    height: 240
+  }
+  if (currentDisplay) {
+    // if a previously selected screen goes away, ask user to pick a new one
+    if (activeDisplayId && activeDisplayId !== currentDisplay.id) {
+      activeDisplayId = null
+      openScreenSelectWindow()
+    }
+    result = {
       ...currentDisplay.bounds
-      // width: Math.round(temp.width / 2)
+      // width: Math.round(currentDisplay.bounds.width / 2)
     }
   }
+  return result
 }
 function setupBoundsLoop (socket) {
   if (boundsLoopInterval) {
@@ -299,11 +311,12 @@ function startOverlay (socket) {
     icon: windowIconPath,
     webPreferences
   })
+  overlayWindow.setAlwaysOnTop(true, 'floating', 1)
   overlayWindow.setIgnoreMouseEvents(true)
 
   overlayWindow.loadFile(mainView)
     .then(() => {
-      console.log('Window loaded!')
+      console.log('Overlay Window loaded!')
       setupBoundsLoop(socket)
     })
   return overlayWindow
@@ -314,22 +327,26 @@ function sendThumbnailsToScreenSelectWindow () {
   if (screenSelectWindow) {
     return desktopCapturer.getSources({ types: ['screen'] })
       .then((sources) => {
-        return sources.map((source) => {
-          return source.thumbnail
-        })
-      })
-      .then((thumbnails) => {
-        const thumbnailDataUrlStrings = thumbnails.map((thumbnail) => {
-          return thumbnail.toDataURL()
-        })
-        screenSelectWindow.webContents.executeJavaScript(
-          `updateThumbnails(${JSON.stringify(thumbnailDataUrlStrings)})`
-        )
+        // screenSelectWindow may have closed since the promise was made and now resolved
+        if (screenSelectWindow) {
+          const displaysAndThumbnails = sources.map((source) => {
+            return {
+              // Why is `source.display_id` a string when `screen.getAllDisplays()[n].id` is a number? Why?
+              id: parseInt(source.display_id, 10),
+              thumbnail: source.thumbnail.toDataURL()
+            }
+          })
+          screenSelectWindow.webContents.executeJavaScript(
+            `updateDisplays(${JSON.stringify(displaysAndThumbnails)})`
+          )
+          // update the preview at 10fps while the window is open
+          setTimeout(sendThumbnailsToScreenSelectWindow, 1000 / 10)
+        }
       })
   }
 }
-function handleScreenSelect (event, _screenIndex) {
-  screenIndex = _screenIndex
+function handleScreenSelect (event, displayId) {
+  activeDisplayId = displayId
   if (screenSelectWindow) {
     screenSelectWindow.close()
     screenSelectWindow = null
@@ -344,6 +361,10 @@ ipcMain.on(
   handleScreenSelect
 )
 function openScreenSelectWindow () {
+  if (screenSelectWindow) {
+    // closing an old one and opening a new one should put it on top if user has lost it
+    screenSelectWindow.close()
+  }
   screenSelectWindow = new BrowserWindow({
     width: 640,
     height: 372,
@@ -379,6 +400,9 @@ app.on('window-all-closed', (closeEvent) => {
   console.log('ME HAVE BEEN MURDERED!!', {
     closeEvent
   })
+  if (tray) {
+    tray.destroy()
+  }
   app.quit()
 })
 

@@ -14,7 +14,7 @@
             <h1>Where is Goose's home?</h1>
         </div>
         <p
-            v-if="!thumbnails.length"
+            v-if="!displays.length"
         >Loading</p>
         <div
             v-else
@@ -30,19 +30,20 @@
                 class="screen-holder"
             >
                 <label
-                    v-for="(thumbnail, index) in thumbnails"
+                    v-for="display in displays"
+                    :key="display.id"
                     class="screen-select"
                     :class="{
-                        active: screenIndex === index
+                        active: displayId === display.id
                     }"
                 >
                     <input
                         type="radio"
-                        :value="index"
-                        v-model="screenIndex"
+                        :value="display.id"
+                        v-model="displayId"
                     >
                     <img
-                        :src="thumbnail"
+                        :src="display.thumbnail"
                     />
                 </label>
             </div>

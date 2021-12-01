@@ -1,19 +1,19 @@
 const app = new window.Vue({
   el: '#app',
   data: {
-    thumbnails: [],
-    screenIndex: null,
+    displays: [],
+    displayId: null,
     showError: false
   },
   methods: {
-    select (index) {
+    select (id) {
       this.showError = false
-      this.screenIndex = index
+      this.displayId = id
     },
     save () {
-      const index = this.screenIndex
-      if (index !== null) {
-        window.electron.send('screenSelect', this.screenIndex)
+      const id = this.displayId
+      if (id !== null) {
+        window.electron.send('screenSelect', id)
       } else {
         this.showError = true
       }
@@ -21,8 +21,8 @@ const app = new window.Vue({
   }
 })
 
-window.updateThumbnails = (thumbnails) => {
-  app.thumbnails = thumbnails
+window.updateDisplays = (displays) => {
+  app.displays = displays
 }
 
 window.electron.send('screenSelectLoaded')
