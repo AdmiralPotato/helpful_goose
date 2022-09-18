@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/AdmiralPotato/helpful_goose#readme",
   "engines": {
-    "node": "14.x"
+    "node": ">=14.x"
   },
   "dependencies": {
     "base64-arraybuffer": "^1.0.1",
