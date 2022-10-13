@@ -132,3 +132,10 @@ p {
 .modal-footer button {
     margin-left: 8px;
 }
+
+.avatar-goose {
+    transition: opacity 0.2s;
+}
+.avatar-goose:hover {
+    opacity: 0.25;
+}

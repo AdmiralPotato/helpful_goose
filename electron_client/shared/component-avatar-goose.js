@@ -128,6 +128,13 @@ window.Vue.component('avatar-goose', {
         href="#goose-pointer"
         :transform="cursor.pointerTransform"
       />
+      <ellipse
+        class="hover-catch"
+        fill="#0000"
+        rx="2"
+        ry="2"
+        cy="1"
+      />
     </g>
   `
 })
