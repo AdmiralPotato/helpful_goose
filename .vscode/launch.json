@@ -1,0 +1,27 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+
+		{
+			"name": "Debug api",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceFolder}/api",
+			"args" : ["."],
+			"outputCapture": "std"
+		},
+
+		{
+			"name": "Debug electron_client",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceFolder}/electron_client",
+			"runtimeExecutable": "${workspaceFolder}/electron_client/node_modules/.bin/electron",
+			"windows": {
+			"runtimeExecutable": "${workspaceFolder}/electron_client/node_modules/.bin/electron.cmd"
+			},
+			"args" : ["."],
+			"outputCapture": "std"
+		}
+	]
+}

@@ -20,12 +20,12 @@
   },
   "homepage": "https://github.com/AdmiralPotato/helpful_goose#readme",
   "dependencies": {
-    "base64-arraybuffer": "^1.0.1",
+    "base64-arraybuffer": "^1.0.2",
     "dotenv": "^10.0.0",
-    "socket.io-client": "^4.2.0",
-    "vue": "^2.6.14"
+    "socket.io-client": "^4.6.1",
+    "vue": "^2.7.14"
   },
   "devDependencies": {
-    "electron": "^20.1.4"
+    "electron": "^24.1.3"
   }
 }
