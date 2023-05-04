@@ -8,22 +8,21 @@ window.Vue.component('avatar-goose', {
   computed: {
     cursor () {
       const user = this.user
-      const degrees = (user.angle / window.tau) * 360
-      const bodyDegrees = ((user.angle + Math.PI) / window.tau) * 360
-      const pointerDegrees = (user.inputAngle / window.tau) * 360
-      const cos = Math.cos(user.angle)
-      const eyeSlideX = user.angle < 0
+      const headDegrees = (user.headAngle / window.tau) * 360
+      const bodyDegrees = (user.bodyAngle / window.tau) * 360
+      const pointerDegrees = (user.eyeAngle / window.tau) * 360
+      const cos = Math.cos(user.headAngle)
+      const eyeSlideX = user.headAngle < 0
         ? -cos
         : cos
       const eyeSlideXDistance = 1
-      const eyeSlideY = Math.sin(user.angle) * 0.5
+      const eyeSlideY = Math.sin(user.headAngle) * 0.5
       return Object.assign(
         {},
         user,
         {
-          bodyDirection: (Math.abs(user.angle) > (Math.PI * 0.5)) ? 1 : -1,
-          degrees: degrees,
-          headTransform: `rotate(${degrees})`,
+          bodyDirection: (Math.abs(user.headAngle) > (Math.PI * 0.5)) ? 1 : -1,
+          headTransform: `rotate(${headDegrees})`,
           leftEyeTransform: `
             translate(${eyeSlideX - eyeSlideXDistance} ${eyeSlideY})
           `,
@@ -40,7 +39,7 @@ window.Vue.component('avatar-goose', {
       )
     }
   },
-  template: `
+  template: /* svg */`
     <g
       class="avatar-goose"
       :transform="cursor.transform"

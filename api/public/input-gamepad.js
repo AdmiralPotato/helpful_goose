@@ -78,29 +78,65 @@ const deadzone = 0.075
 const convertLowLevelEventToHigherLevelEvent = (event) => {
   const controller = gamepadEvents.controllers[event.id] = gamepadEvents.controllers[event.id] || {
     id: event.id,
-    x: 0,
-    y: 0,
+    moveX: 0,
+    moveY: 0,
+    moveCentered: true,
+    aimX: 0,
+    aimY: 0,
+    aimCentered: true,
     angle: 0,
     action: 0
   }
-  const x = event.axes[0] || 0
-  const y = event.axes[1] || 0
-  const centered = (
-    Math.abs(x) < deadzone &&
-    Math.abs(y) < deadzone
+  const lX = event.axes[0] || 0
+  const lY = event.axes[1] || 0
+  const rX = event.axes[2] || 0
+  const rY = event.axes[3] || 0
+  const leftCentered = (
+    Math.abs(lX) < deadzone &&
+    Math.abs(lY) < deadzone
   )
+  const rightCentered = (
+    Math.abs(rX) < deadzone &&
+    Math.abs(rY) < deadzone
+  )
+  let wantMoveEvent = false
+  let wantEndEvent = false
+  const moveX = lX
+  const moveY = lY
+  const moveCentered = leftCentered
+  const aimX = rX
+  const aimY = rY
+  const aimCentered = rightCentered
   if (
-    controller.x !== x ||
-    controller.y !== y
+    controller.moveX !== moveX ||
+    controller.moveY !== moveY
   ) {
-    controller.x = x
-    controller.y = y
-    if (centered && !controller.centered) {
-      gamepadEvents.emit('end', controller)
-    } else if (!centered) {
-      gamepadEvents.emit('move', controller)
+    controller.moveX = moveX
+    controller.moveY = moveY
+    if (moveCentered && !controller.moveCentered) {
+      wantEndEvent = true
+    } else if (!moveCentered) {
+      wantMoveEvent = true
     }
-    controller.centered = centered
+    controller.moveCentered = moveCentered
+  }
+  if (
+    controller.aimX !== aimX ||
+    controller.aimY !== aimY
+  ) {
+    controller.aimX = aimX
+    controller.aimY = aimY
+    if (aimCentered && !controller.aimCentered) {
+      wantEndEvent = true
+    } else if (!aimCentered) {
+      wantMoveEvent = true
+    }
+    controller.aimCentered = aimCentered
+  }
+  if (wantMoveEvent) {
+    gamepadEvents.emit('move', controller)
+  } else if (wantEndEvent) {
+    gamepadEvents.emit('end', controller)
   }
   const actionLevel = ( // A float value. Variable strength honk.
     event.buttons[0] || // A & ❌
@@ -145,21 +181,34 @@ window.attachGamepadInputToUser = (inputEmitter, user) => {
   }
   const moveListener = (event) => {
     if (event.id === user.controller) {
-      const angle = Math.atan2(-event.y, event.x)
+      const moveAngle = Math.atan2(-event.moveY, event.moveX)
       if (!user.connected) {
-        user.angle = ((-angle + tau) % tau) / deg
+        user.moveAngle = ((-moveAngle + tau) % tau) / deg
       } else {
-        const distance = Math.sqrt(
-          (event.x * event.x) +
-          (event.y * event.y)
+        const moveDistance = Math.sqrt(
+          (event.moveX * event.moveX) +
+          (event.moveY * event.moveY)
         )
-        user.force = Math.min(1, distance * distance)
+        user.moveForce = Math.min(1, moveDistance * moveDistance)
+        let aimAngle = null
+        if (event.aimCentered) {
+          user.aimForce = null
+        } else {
+          aimAngle = Math.atan2(event.aimY, event.aimX)
+          const aimDistance = Math.sqrt(
+            (event.aimX * event.aimX) +
+            (event.aimY * event.aimY)
+          )
+          user.aimForce = Math.min(1, aimDistance * aimDistance)
+        }
         inputEmitter(
           'change',
           {
             id: user.id,
-            force: user.force,
-            angle: angle
+            moveForce: user.moveForce,
+            moveAngle: moveAngle,
+            aimForce: user.aimForce,
+            aimAngle: aimAngle
           }
         )
       }

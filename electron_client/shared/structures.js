@@ -72,20 +72,26 @@ const initGooseDataStructures = () => {
     },
     UserMove: {
       // typedef struct {
-      //   uint16_t angle,
+      //   uint16_t moveAngle,
       //   char id[4],
-      //   uint8_t force
-      // } UserMove = 7
+      //   uint8_t moveForce,
+      //   optional<uint16_t> aimAngle,
+      //   optional<uint8_t> aimForce
+      // } UserMove = 7 or 10
       eventKey: 'm', // for move
       encode (userMove) {
-        const arrayBuffer = new ArrayBuffer(7)
+        if ((userMove.aimAngle === null) !== (userMove.aimForce === null)) {
+          throw new Error('aimAngle and aimForce must both be null if either is null')
+        }
+        const bufferLength = userMove.aimAngle === null ? 7 : 10
+        const arrayBuffer = new ArrayBuffer(bufferLength)
         const dataView = new DataView(arrayBuffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
         const id = textEncoder.encode(userMove.id)
-        const angle = encodeAngle(userMove.angle)
-        const force = encodeAction(userMove.force)
+        const moveAngle = encodeAngle(userMove.moveAngle)
+        const moveForce = encodeAction(userMove.moveForce)
 
         let offset = 0
-        dataView.setUint16(offset, angle)
+        dataView.setUint16(offset, moveAngle)
         offset += 2
         dataView.setUint8(offset, id[0])
         offset += 1
@@ -96,25 +102,46 @@ const initGooseDataStructures = () => {
         dataView.setUint8(offset, id[3])
         offset += 1
 
-        dataView.setUint8(offset, force)
+        dataView.setUint8(offset, moveForce)
         offset += 1
+
+        if (userMove.aimAngle !== null) {
+          const aimAngle = encodeAngle(userMove.aimAngle)
+          const aimForce = encodeAction(userMove.aimForce)
+          dataView.setUint16(offset, aimAngle)
+          offset += 2
+          dataView.setUint8(offset, aimForce)
+          offset += 1
+        }
+
         return arrayBuffer
       },
       decode (arrayBuffer) {
         const dataView = new DataView(arrayBuffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
         let offset = 0
-        const angle = decodeAngle(dataView.getUint16(offset))
+        const moveAngle = decodeAngle(dataView.getUint16(offset))
         offset += 2
         const id = textDecoder.decode(arrayBuffer.slice(offset, offset + 4))
         offset += 4
-        const force = decodeAction(dataView.getUint8(offset))
+        const moveForce = decodeAction(dataView.getUint8(offset))
         offset += 1
+
+        let aimAngle = null
+        let aimForce = null
+        if (arrayBuffer.byteLength >= 10) {
+          aimAngle = decodeAngle(dataView.getUint16(offset))
+          offset += 2
+          aimForce = decodeAction(dataView.getUint8(offset))
+          offset += 1
+        }
 
         return {
           id,
-          angle,
-          force,
-          byteLength: offset
+          moveAngle,
+          moveForce,
+          byteLength: offset,
+          aimAngle,
+          aimForce
         }
       }
     },
@@ -171,18 +198,20 @@ const initGooseDataStructures = () => {
       // typedef struct {
       //  uint16_t x,
       //  uint16_t y,
-      //  uint16_t angle, -pi to +pi
-      //  uint16_t inputAngle,
+      //  uint16_t bodyAngle, -pi to +pi
+      //  uint16_t headAngle,
+      //  uint16_t eyeAngle,
       //  uint8_t action,
       //  uint8_t id
-      // } UserState = 10 bytes
+      // } UserState = 12 bytes
       encode (userState, index) {
-        const arrayBuffer = new ArrayBuffer(10)
+        const arrayBuffer = new ArrayBuffer(12)
         const dataView = new DataView(arrayBuffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
         const x = encodeAxis(userState.x)
         const y = encodeAxis(userState.y)
-        const angle = encodeAngle(userState.angle)
-        const inputAngle = encodeAngle(userState.inputAngle)
+        const bodyAngle = encodeAngle(userState.bodyAngle)
+        const headAngle = encodeAngle(userState.headAngle)
+        const eyeAngle = encodeAngle(userState.eyeAngle)
         const action = encodeAction(userState.action)
 
         let offset = 0
@@ -190,9 +219,11 @@ const initGooseDataStructures = () => {
         offset += 2
         dataView.setUint16(offset, y)
         offset += 2
-        dataView.setUint16(offset, angle)
+        dataView.setUint16(offset, bodyAngle)
         offset += 2
-        dataView.setUint16(offset, inputAngle)
+        dataView.setUint16(offset, headAngle)
+        offset += 2
+        dataView.setUint16(offset, eyeAngle)
         offset += 2
         dataView.setUint8(offset, action)
         offset += 1
@@ -207,9 +238,11 @@ const initGooseDataStructures = () => {
         offset += 2
         const y = decodeAxis(dataView.getUint16(offset))
         offset += 2
-        const angle = decodeAngle(dataView.getUint16(offset))
+        const bodyAngle = decodeAngle(dataView.getUint16(offset))
         offset += 2
-        const inputAngle = decodeAngle(dataView.getUint16(offset))
+        const headAngle = decodeAngle(dataView.getUint16(offset))
+        offset += 2
+        const eyeAngle = decodeAngle(dataView.getUint16(offset))
         offset += 2
         const action = decodeAction(dataView.getUint8(offset))
         offset += 1
@@ -220,8 +253,9 @@ const initGooseDataStructures = () => {
           id,
           x,
           y,
-          angle,
-          inputAngle,
+          bodyAngle,
+          headAngle,
+          eyeAngle,
           action,
           byteLength: offset
         }

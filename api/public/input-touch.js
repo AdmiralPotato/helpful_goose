@@ -37,14 +37,16 @@ window.attachTouchInputToUser = (inputEmitter, user) => {
   }
 
   const moveListener = (allJoystickValues, currentJoystickValues) => {
-    user.force = currentJoystickValues.force
-    user.angle = currentJoystickValues.angle.radian
+    user.moveForce = currentJoystickValues.force
+    user.moveAngle = currentJoystickValues.angle.radian
     inputEmitter(
       'change',
       {
         id: user.id,
-        force: user.force,
-        angle: user.angle
+        moveForce: user.moveForce,
+        moveAngle: user.moveAngle,
+        aimForce: null,
+        aimAngle: null
       }
     )
   }

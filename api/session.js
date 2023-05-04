@@ -84,16 +84,20 @@ function createInstance (
       const userAlreadyInSocket = socket.userMap[id]
       if (!userAlreadyInSession) {
         const placementRadius = 0.5
-        const angle = Math.random() * Math.PI * 2
+        const placementAngle = Math.random() * Math.PI * 2
         const newProperties = {
-          x: Math.cos(angle) * placementRadius,
-          y: Math.sin(angle) * placementRadius,
+          x: Math.cos(placementAngle) * placementRadius,
+          y: Math.sin(placementAngle) * placementRadius,
           xVel: 0,
           yVel: 0,
-          angle: 0,
-          inputAngle: 0,
-          inputForce: 0,
-          force: 0,
+          inputMoveAngle: 0,
+          inputMoveForce: 0,
+          inputAimAngle: null,
+          inputAimForce: null,
+          bodyAngle: 0,
+          headAngle: 0,
+          eyeAngle: 0,
+          moveForce: 0,
           action: 0,
           scale: 0.5,
           onTime: null,
@@ -146,12 +150,18 @@ function createInstance (
           user.onTime = now
         }
         user.lastActiveTime = now
-        user.inputForce = Math.min(1, moveData.force)
-        user.inputAngle = (
-          moveData.angle !== undefined
-            ? -moveData.angle
-            : user.inputAngle
+        user.inputMoveForce = Math.min(1, moveData.moveForce)
+        user.inputMoveAngle = (
+          moveData.moveAngle !== undefined
+            ? -moveData.moveAngle
+            : user.inputMoveAngle
         ) || 0
+        user.inputAimForce = null
+        user.inputAimAngle = null
+        if (moveData.aimAngle !== null && moveData.aimForce !== null) {
+          user.inputAimForce = moveData.aimForce
+          user.inputAimAngle = moveData.aimAngle
+        }
       } else {
         console.error('Cheating! Someone is trying to control a cursor that is not on their socket!')
       }

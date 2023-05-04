@@ -36,16 +36,32 @@ controls.tickUsers = (now, users, bounds) => {
     if (user.onTime !== null && !user.hit) {
       const timeDiff = now - user.onTime
       const accelerationRampUp = Math.min(1, timeDiff / 1000)
-      const userAddedForce = user.inputForce * accelerationRampUp * controls.userMaxForceAddedPerFrame
-      const xVel = user.xVel + Math.cos(user.inputAngle) * userAddedForce
-      const yVel = user.yVel + Math.sin(user.inputAngle) * userAddedForce
-      user.angle = Math.atan2(yVel, xVel)
-      user.force = Math.min(controls.getLength(xVel, yVel), controls.cursorMaxSpeed)
-      user.xVel = Math.cos(user.angle) * user.force
-      user.yVel = Math.sin(user.angle) * user.force
+      const userAddedForce = user.inputMoveForce * accelerationRampUp * controls.userMaxForceAddedPerFrame
+      const xVel = user.xVel + Math.cos(user.inputMoveAngle) * userAddedForce
+      const yVel = user.yVel + Math.sin(user.inputMoveAngle) * userAddedForce
+      const velocityAngle = Math.atan2(yVel, xVel)
+      if (user.inputAimAngle !== null) {
+        // Don't change the head angle if the right stick input is very slight
+        if (user.inputAimForce > 0.2) {
+          user.headAngle = user.inputAimAngle
+        }
+        // Always change the eye angle in response to any right stick input
+        user.eyeAngle = user.inputAimAngle
+      } else {
+        // If there is no right stick input, change the head to face our
+        // velocity and the eyes to face our input force.
+        user.headAngle = velocityAngle
+        user.eyeAngle = user.inputMoveAngle
+      }
+      // Always change the body to face opposite our velocity
+      user.bodyAngle = velocityAngle + Math.PI
+      // Cap the user's velocity to a particular maximum
+      user.moveForce = Math.min(controls.getLength(xVel, yVel), controls.cursorMaxSpeed)
+      user.xVel = Math.cos(velocityAngle) * user.moveForce
+      user.yVel = Math.sin(velocityAngle) * user.moveForce
     } else {
-      user.force = controls.getLength(user.xVel, user.yVel)
-      if (user.hit && (user.force < 0.001)) {
+      user.moveForce = controls.getLength(user.xVel, user.yVel)
+      if (user.hit && (user.moveForce < 0.001)) {
         if (user.onTime !== null) {
           user.onTime = now
         }
