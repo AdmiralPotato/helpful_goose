@@ -1,6 +1,7 @@
 const controls = {}
 controls.tau = Math.PI * 2
 controls.ticksPerSecond = 60
+controls.headDeadzone = 0.15
 controls.mapRange = (a, b, x, y, valueAB) => {
   const diff0 = a - b
   const diff1 = x - y
@@ -12,6 +13,11 @@ controls.bound = (min, max, value) => {
 }
 controls.lerp = (a, b, progress) => {
   return a + ((b - a) * progress)
+}
+controls.angleLerp = (a, b, progress) => {
+  const dist = (b - a) % controls.tau
+  const shortestDist = 2 * dist % controls.tau - dist
+  return a + shortestDist * progress
 }
 controls.getDistance = (a, b) => {
   const diffX = a.x - b.x
@@ -42,8 +48,9 @@ controls.tickUsers = (now, users, bounds) => {
       const velocityAngle = Math.atan2(yVel, xVel)
       if (user.inputAimAngle !== null) {
         // Don't change the head angle if the right stick input is very slight
-        if (user.inputAimForce > 0.2) {
-          user.headAngle = user.inputAimAngle
+        if (user.inputAimForce > controls.headDeadzone) {
+          const headTurnAmount = Math.pow(user.inputAimForce, 7) * accelerationRampUp
+          user.headAngle = controls.angleLerp(user.headAngle, user.inputAimAngle, headTurnAmount)
         }
         // Always change the eye angle in response to any right stick input
         user.eyeAngle = user.inputAimAngle
