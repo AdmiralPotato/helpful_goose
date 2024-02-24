@@ -22,7 +22,7 @@
   "engines": {
     "node": ">=14.x"
   },
-  "devDependencies": {
-    "standard": "^16.0.4"
+  "dependencies": {
+    "standard": "^17.1.0"
   }
 }
