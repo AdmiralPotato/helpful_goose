@@ -25,7 +25,7 @@ const screenSelectView = './views/screen_select.html'
 const sessionLinkView = './views/session_link.html'
 
 const webPreferences = {
-  preload: path.resolve('./preload.js'),
+  preload: path.join(__dirname, 'preload.js'),
   nodeIntegration: false,
   contextIsolation: true,
   enableRemoteModule: false
