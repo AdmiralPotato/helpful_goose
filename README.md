@@ -2,7 +2,7 @@
 
 A Helpful Goose that friends and coworkers can control on your screen to stay engaged and point to things.
 
-![A screen capture of multiple Gooses swimming and honking around on top of a text editor full of code](https://cdn.discordapp.com/attachments/678708714965958657/912316163151761428/helpful_goose-release-lossy_10.gif)
+![A screen capture of multiple Gooses swimming and honking around on top of a text editor full of code](api/public/helpful_goose-release-lossy_10.gif)
 
 Great for Pair Programming and Mentoring type situations. Supports multiple remote participants.
 
