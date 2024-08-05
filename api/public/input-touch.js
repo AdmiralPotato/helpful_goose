@@ -20,6 +20,24 @@ window.attachTouchInputToUser = (inputEmitter, user) => {
           action: 1
         }
       )
+    } else if (event.key === 'e') {
+      event.preventDefault()
+      inputEmitter(
+        'eyeContact',
+        {
+          id: user.id,
+          pressed: true
+        }
+      )
+    } else if (event.key === 'q') {
+      event.preventDefault()
+      inputEmitter(
+        'cloak',
+        {
+          id: user.id,
+          pressed: true
+        }
+      )
     }
   }
 
@@ -31,6 +49,24 @@ window.attachTouchInputToUser = (inputEmitter, user) => {
         {
           id: user.id,
           action: 0
+        }
+      )
+    } else if (event.key === 'e') {
+      event.preventDefault()
+      inputEmitter(
+        'eyeContact',
+        {
+          id: user.id,
+          pressed: false
+        }
+      )
+    } else if (event.key === 'q') {
+      event.preventDefault()
+      inputEmitter(
+        'cloak',
+        {
+          id: user.id,
+          pressed: false
         }
       )
     }
