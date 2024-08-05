@@ -159,6 +159,87 @@ const initGooseDataStructures = () => {
         }
       }
     },
+    Cloak: {
+      // typedef struct {
+      //   char id[4],
+      //   uint8_t pressed
+      // } Cloak = 5 bytes
+      eventKey: 'C', // for cloak
+      encode (cloak) {
+        const arrayBuffer = new ArrayBuffer(5)
+        const dataView = new DataView(arrayBuffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
+        const id = textEncoder.encode(cloak.id)
+        const pressed = cloak.pressed ? 255 : 0
+
+        let offset = 0
+        dataView.setUint8(offset, id[0])
+        offset += 1
+        dataView.setUint8(offset, id[1])
+        offset += 1
+        dataView.setUint8(offset, id[2])
+        offset += 1
+        dataView.setUint8(offset, id[3])
+        offset += 1
+        dataView.setUint8(offset, pressed)
+        offset += 1
+        return arrayBuffer
+      },
+      decode (arrayBuffer) {
+        const dataView = new DataView(arrayBuffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
+        let offset = 0
+        const id = textDecoder.decode(arrayBuffer.slice(offset, offset + 4))
+        offset += 4
+        const pressed = dataView.getUint8(offset) != 0
+        offset += 1
+
+
+        return {
+          id,
+          pressed,
+          byteLength: offset
+        }
+      }
+    },
+    EyeContact: {
+      // typedef struct {
+      //   char id[4],
+      //   uint8_t pressed
+      // } EyeContact = 5 bytes
+      eventKey: 'E', // for eye
+      encode (eyeContact) {
+        const arrayBuffer = new ArrayBuffer(5)
+        const dataView = new DataView(arrayBuffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
+        const id = textEncoder.encode(eyeContact.id)
+        const pressed = eyeContact.pressed ? 255 : 0
+
+        let offset = 0
+        dataView.setUint8(offset, id[0])
+        offset += 1
+        dataView.setUint8(offset, id[1])
+        offset += 1
+        dataView.setUint8(offset, id[2])
+        offset += 1
+        dataView.setUint8(offset, id[3])
+        offset += 1
+        dataView.setUint8(offset, pressed)
+        offset += 1
+        return arrayBuffer
+      },
+      decode (arrayBuffer) {
+        const dataView = new DataView(arrayBuffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
+        let offset = 0
+        const id = textDecoder.decode(arrayBuffer.slice(offset, offset + 4))
+        offset += 4
+        const pressed = dataView.getUint8(offset) != 0
+        offset += 1
+
+        return {
+          id,
+          pressed,
+          byteLength: offset
+        }
+      }
+    },
     Bounds: {
       // typedef struct {
       //   uint16_t width,
@@ -202,10 +283,12 @@ const initGooseDataStructures = () => {
       //  uint16_t headAngle,
       //  uint16_t eyeAngle,
       //  uint8_t action,
-      //  uint8_t id
-      // } UserState = 12 bytes
+      //  uint8_t id,
+      //  uint8_t eyeContact,
+      //  uint8_t opacity
+      // } UserState = 14 bytes
       encode (userState, index) {
-        const arrayBuffer = new ArrayBuffer(12)
+        const arrayBuffer = new ArrayBuffer(14)
         const dataView = new DataView(arrayBuffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
         const x = encodeAxis(userState.x)
         const y = encodeAxis(userState.y)
@@ -213,6 +296,8 @@ const initGooseDataStructures = () => {
         const headAngle = encodeAngle(userState.headAngle)
         const eyeAngle = encodeAngle(userState.eyeAngle)
         const action = encodeAction(userState.action)
+        const eyeContact = userState.eyeContact ? 255 : 0
+        const opacity = encodeAction(userState.opacity)
 
         let offset = 0
         dataView.setUint16(offset, x)
@@ -228,6 +313,10 @@ const initGooseDataStructures = () => {
         dataView.setUint8(offset, action)
         offset += 1
         dataView.setUint8(offset, index || 0)
+        offset += 1
+        dataView.setUint8(offset, eyeContact)
+        offset += 1
+        dataView.setUint8(offset, opacity)
         offset += 1
         return arrayBuffer
       },
@@ -248,6 +337,16 @@ const initGooseDataStructures = () => {
         offset += 1
         const id = dataView.getUint8(offset)
         offset += 1
+        let eyeContact = false
+        if(arrayBuffer.byteLength >= 13) {
+          eyeContact = dataView.getUint8(offset) != 0
+          offset += 1
+        }
+        let opacity = 1
+        if(arrayBuffer.byteLength >= 14) {
+          opacity = decodeAction(dataView.getUint8(offset))
+          offset += 1
+        }
 
         return {
           id,
@@ -257,6 +356,8 @@ const initGooseDataStructures = () => {
           headAngle,
           eyeAngle,
           action,
+          eyeContact,
+          opacity,
           byteLength: offset
         }
       }
@@ -471,7 +572,9 @@ const initGooseDataStructures = () => {
       const eventStructureMap = {
         action: structures.UserAction,
         change: structures.UserMove,
-        release: structures.UserRelease
+        release: structures.UserRelease,
+        cloak: structures.Cloak,
+        eyeContact: structures.EyeContact
       }
       return (eventType, data) => {
         const structure = eventStructureMap[eventType]
@@ -490,6 +593,8 @@ const initGooseDataStructures = () => {
         action: structures.UserAction,
         change: structures.UserMove,
         release: structures.UserRelease,
+        cloak: structures.Cloak,
+        eyeContact: structures.EyeContact,
         update: structures.GameState,
         complete: structures.CompleteGameState
       }

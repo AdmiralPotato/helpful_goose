@@ -65,6 +65,16 @@ window.Vue.component('shape-defs', {
           />
         </g>
         <g
+          id="goose-pupil-centered"
+          transform="scale(0.5)"
+        >
+          <ellipse
+            fill="#fff"
+            rx="0.3"
+            ry="0.3"
+          />
+        </g>
+        <g
           id="goose-pointer"
         >
           <path
