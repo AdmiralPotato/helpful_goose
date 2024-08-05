@@ -34,7 +34,9 @@ window.Vue.component('avatar-goose', {
           transform: `
             translate(${user.x} ${user.y})
             scale(${user.combinedScale / 8})
-          `
+          `,
+          eyeContact: user.eyeContact,
+          style: "opacity:"+user.opacity.toFixed(2)
         }
       )
     }
@@ -43,6 +45,7 @@ window.Vue.component('avatar-goose', {
     <g
       class="avatar-goose"
       :transform="cursor.transform"
+      :style="cursor.style"
     >
       <g
         class="goose-body"
@@ -115,15 +118,16 @@ window.Vue.component('avatar-goose', {
           :transform="cursor.rightEyeTransform"
         />
         <use
-          href="#goose-pupil"
+          :href="cursor.eyeContact ? '#goose-pupil-centered' : '#goose-pupil'"
           :transform="cursor.leftEyeTransform + cursor.pointerTransform"
         />
         <use
-          href="#goose-pupil"
+          :href="cursor.eyeContact ? '#goose-pupil-centered' : '#goose-pupil'"
           :transform="cursor.rightEyeTransform + cursor.pointerTransform"
         />
       </g>
       <use
+        v-if="!cursor.eyeContact"
         href="#goose-pointer"
         :transform="cursor.pointerTransform"
       />

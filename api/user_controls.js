@@ -2,6 +2,10 @@ const controls = {}
 controls.tau = Math.PI * 2
 controls.ticksPerSecond = 60
 controls.headDeadzone = 0.15
+controls.eyeContactAimDeadzone = 0.2
+controls.eyeContactMoveDeadzone = 0.5
+controls.cloakedOpacity = 0.1
+controls.decloakRate = (1 / 1000) // take 1000ms to fully [de]cloak
 controls.mapRange = (a, b, x, y, valueAB) => {
   const diff0 = a - b
   const diff1 = x - y
@@ -34,7 +38,7 @@ controls.constrainUserToBounds = (user, bounds) => {
 controls.cursorDrag = 0.955
 controls.cursorMaxSpeed = 1 / 80
 controls.userMaxForceAddedPerFrame = 1 / 2000
-controls.tickUsers = (now, users, bounds) => {
+controls.tickUsers = (now, deltaTime, users, bounds) => {
   users.forEach(user => {
     user.xVel *= controls.cursorDrag
     user.yVel *= controls.cursorDrag
@@ -73,6 +77,44 @@ controls.tickUsers = (now, users, bounds) => {
           user.onTime = now
         }
         user.hit = false
+      }
+    }
+
+    if (user.inputEyeContactPress) {
+      // While the eye contact button is held, always make eye contact.
+      user.eyeContact = true
+    } else if (user.eyeContact) {
+      // If the eye contact button is NOT pressed, but we were ALREADY making
+      // eye contact, then continue making eye contact until either stick is
+      // pressed.
+      if (
+        (user.inputMoveAngle !== null && user.inputMoveForce > controls.eyeContactMoveDeadzone)
+        || (user.inputAimAngle !== null && user.inputAimForce > controls.eyeContactAimDeadzone)
+      ) {
+        user.eyeContact = false
+      }
+    }
+
+    if (user.inputCloakPress && !user.inputCloakWasPressed) {
+      // If we want more than two cloak states, here is where the logic would
+      // go.
+      if (user.targetOpacity == 1) {
+        user.targetOpacity = controls.cloakedOpacity;
+      } else {
+        user.targetOpacity = 1;
+      }
+    }
+    user.inputCloakWasPressed = user.inputCloakPress;
+
+    if (user.opacity != user.targetOpacity) {
+      const delta = Math.min(
+        Math.abs(user.targetOpacity - user.opacity),
+        deltaTime * controls.decloakRate
+      );
+      if (user.targetOpacity > user.opacity) {
+        user.opacity += delta
+      } else {
+        user.opacity -= delta
       }
     }
 

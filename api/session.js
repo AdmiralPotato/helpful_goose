@@ -20,14 +20,21 @@ function createInstance (
       width: 10,
       height: 10
     },
+    lastTick: null,
     userMap: {},
     tick: () => {
       const now = Date.now()
+      if(session.lastTick === null) {
+        session.lastTick = now;
+      }
+      const deltaTime = now - session.lastTick;
       userControls.tickUsers(
         now,
+        deltaTime,
         Object.values(session.userMap),
         session.bounds
       )
+      session.lastTick = now;
       session.bootUsersThatNeedBooting()
       const arrayBuffer = structures.GameState.encode(Object.values(session.userMap))
       room.emit(
@@ -61,7 +68,9 @@ function createInstance (
         {
           change: session.controlChange,
           release: session.controlRelease,
-          action: session.controlAction
+          action: session.controlAction,
+          cloak: session.controlCloak,
+          eyeContact: session.controlEyeContact
         }
       )
       socket.on('disconnectUser', (disconnectUserData) => {
@@ -94,6 +103,12 @@ function createInstance (
           inputMoveForce: 0,
           inputAimAngle: null,
           inputAimForce: null,
+          inputEyeContactPress: false,
+          inputCloakPress: false,
+          inputCloakWasPressed: false,
+          eyeContact: false,
+          targetOpacity: 1,
+          opacity: 0,
           bodyAngle: 0,
           headAngle: 0,
           eyeAngle: 0,
@@ -180,6 +195,22 @@ function createInstance (
       if (user) {
         user.action = actionData.action
         user.lastActiveTime = Date.now()
+      } else {
+        console.error('Cheating! Someone is trying to action a cursor that is not on their socket!')
+      }
+    },
+    controlCloak: (socket, cloak) => {
+      const user = socket.userMap[cloak.id]
+      if (user) {
+        user.inputCloakPress = cloak.pressed
+      } else {
+        console.error('Cheating! Someone is trying to action a cursor that is not on their socket!')
+      }
+    },
+    controlEyeContact: (socket, eyeContact) => {
+      const user = socket.userMap[eyeContact.id]
+      if (user) {
+        user.inputEyeContactPress = eyeContact.pressed
       } else {
         console.error('Cheating! Someone is trying to action a cursor that is not on their socket!')
       }

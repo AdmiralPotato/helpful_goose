@@ -58,6 +58,8 @@ const gamepadEvents = {
     change: [],
     action: [],
     move: [],
+    cloak: [],
+    eyeContact: [],
     end: []
   },
   emit (eventName, data) {
@@ -85,7 +87,9 @@ const convertLowLevelEventToHigherLevelEvent = (event) => {
     aimY: 0,
     aimCentered: true,
     angle: 0,
-    action: 0
+    action: 0,
+    cloakPress: false,
+    eyeContactPress: false
   }
   const lX = event.axes[0] || 0
   const lY = event.axes[1] || 0
@@ -155,6 +159,16 @@ const convertLowLevelEventToHigherLevelEvent = (event) => {
     controller.action = actionLevel
     gamepadEvents.emit('action', controller)
   }
+  const cloakPress = !!event.buttons[10] // Left Stick Click
+  if (cloakPress !== controller.cloakPress) {
+    controller.cloakPress = cloakPress
+    gamepadEvents.emit('cloak', controller);
+  }
+  const eyeContactPress = !!event.buttons[11] // Right Stick Click
+  if (eyeContactPress !== controller.eyeContactPress) {
+    controller.eyeContactPress = eyeContactPress
+    gamepadEvents.emit('eyeContact', controller);
+  }
 }
 
 gamepadEvents.addEventListener(
@@ -214,6 +228,28 @@ window.attachGamepadInputToUser = (inputEmitter, user) => {
       }
     }
   }
+  const cloakListener = (event) => {
+    if (event.id === user.controller) {
+      inputEmitter(
+        'cloak',
+        {
+          id: user.id,
+          pressed: event.cloakPress
+        }
+      )
+    }
+  }
+  const eyeContactListener = (event) => {
+    if (event.id === user.controller) {
+      inputEmitter(
+        'eyeContact',
+        {
+          id: user.id,
+          pressed: event.eyeContactPress
+        }
+      )
+    }
+  }
   const endListener = (event) => {
     if (event.id !== user.controller || !user.connected) { return }
     inputEmitter('release', { id: user.id })
@@ -222,11 +258,15 @@ window.attachGamepadInputToUser = (inputEmitter, user) => {
   user.disconnectController = () => {
     gamepadEvents.removeEventListener('action', actionListener)
     gamepadEvents.removeEventListener('move', moveListener)
+    gamepadEvents.removeEventListener('cloak', cloakListener)
+    gamepadEvents.removeEventListener('eyeContact', eyeContactListener)
     gamepadEvents.removeEventListener('end', endListener)
   }
 
   gamepadEvents.addEventListener('action', actionListener)
   gamepadEvents.addEventListener('move', moveListener)
+  gamepadEvents.addEventListener('cloak', cloakListener)
+  gamepadEvents.addEventListener('eyeContact', eyeContactListener)
   gamepadEvents.addEventListener('end', endListener)
 }
 
