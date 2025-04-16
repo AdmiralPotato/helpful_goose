@@ -24,17 +24,17 @@ function createInstance (
     userMap: {},
     tick: () => {
       const now = Date.now()
-      if(session.lastTick === null) {
-        session.lastTick = now;
+      if (session.lastTick === null) {
+        session.lastTick = now
       }
-      const deltaTime = now - session.lastTick;
+      const deltaTime = now - session.lastTick
       userControls.tickUsers(
         now,
         deltaTime,
         Object.values(session.userMap),
         session.bounds
       )
-      session.lastTick = now;
+      session.lastTick = now
       session.bootUsersThatNeedBooting()
       const arrayBuffer = structures.GameState.encode(Object.values(session.userMap))
       room.emit(
@@ -104,8 +104,9 @@ function createInstance (
           inputAimAngle: null,
           inputAimForce: null,
           inputEyeContactPress: false,
-          inputCloakPress: false,
-          inputCloakWasPressed: false,
+          cloaked: false,
+          cloakInputThisFrame: false,
+          cloakInputLastFrame: false,
           eyeContact: false,
           targetOpacity: 1,
           opacity: 0,
@@ -116,7 +117,7 @@ function createInstance (
           action: 0,
           scale: 0.5,
           onTime: null,
-          socket: socket,
+          socket,
           lastActiveTime: Date.now(),
           needsBooting: false,
           hit: false
@@ -202,7 +203,7 @@ function createInstance (
     controlCloak: (socket, cloak) => {
       const user = socket.userMap[cloak.id]
       if (user) {
-        user.inputCloakPress = cloak.pressed
+        user.cloakInputThisFrame = cloak.pressed
       } else {
         console.error('Cheating! Someone is trying to action a cursor that is not on their socket!')
       }

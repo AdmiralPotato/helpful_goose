@@ -36,7 +36,7 @@ window.Vue.component('avatar-goose', {
             scale(${user.combinedScale / 8})
           `,
           eyeContact: user.eyeContact,
-          style: "opacity:"+user.opacity.toFixed(2)
+          style: 'opacity:' + user.opacity.toFixed(2)
         }
       )
     }

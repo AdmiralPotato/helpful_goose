@@ -88,29 +88,32 @@ controls.tickUsers = (now, deltaTime, users, bounds) => {
       // eye contact, then continue making eye contact until either stick is
       // pressed.
       if (
-        (user.inputMoveAngle !== null && user.inputMoveForce > controls.eyeContactMoveDeadzone)
-        || (user.inputAimAngle !== null && user.inputAimForce > controls.eyeContactAimDeadzone)
+        (user.inputMoveAngle !== null && user.inputMoveForce > controls.eyeContactMoveDeadzone) ||
+        (user.inputAimAngle !== null && user.inputAimForce > controls.eyeContactAimDeadzone)
       ) {
         user.eyeContact = false
       }
     }
 
-    if (user.inputCloakPress && !user.inputCloakWasPressed) {
+    // Prevents input flickering
+    if (user.cloakInputThisFrame && !user.cloakInputLastFrame) {
       // If we want more than two cloak states, here is where the logic would
       // go.
-      if (user.targetOpacity == 1) {
-        user.targetOpacity = controls.cloakedOpacity;
-      } else {
-        user.targetOpacity = 1;
-      }
+      user.cloaked = !user.cloaked
     }
-    user.inputCloakWasPressed = user.inputCloakPress;
+    user.cloakInputLastFrame = user.cloakInputThisFrame
 
-    if (user.opacity != user.targetOpacity) {
+    if (user.cloaked || now - user.lastActiveTime > 10000) {
+      user.targetOpacity = controls.cloakedOpacity
+    } else {
+      user.targetOpacity = 1
+    }
+
+    if (user.opacity !== user.targetOpacity) {
       const delta = Math.min(
         Math.abs(user.targetOpacity - user.opacity),
         deltaTime * controls.decloakRate
-      );
+      )
       if (user.targetOpacity > user.opacity) {
         user.opacity += delta
       } else {

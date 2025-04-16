@@ -189,9 +189,8 @@ const initGooseDataStructures = () => {
         let offset = 0
         const id = textDecoder.decode(arrayBuffer.slice(offset, offset + 4))
         offset += 4
-        const pressed = dataView.getUint8(offset) != 0
+        const pressed = dataView.getUint8(offset) !== 0
         offset += 1
-
 
         return {
           id,
@@ -230,7 +229,7 @@ const initGooseDataStructures = () => {
         let offset = 0
         const id = textDecoder.decode(arrayBuffer.slice(offset, offset + 4))
         offset += 4
-        const pressed = dataView.getUint8(offset) != 0
+        const pressed = dataView.getUint8(offset) !== 0
         offset += 1
 
         return {
@@ -338,12 +337,12 @@ const initGooseDataStructures = () => {
         const id = dataView.getUint8(offset)
         offset += 1
         let eyeContact = false
-        if(arrayBuffer.byteLength >= 13) {
-          eyeContact = dataView.getUint8(offset) != 0
+        if (arrayBuffer.byteLength >= 13) {
+          eyeContact = dataView.getUint8(offset) !== 0
           offset += 1
         }
         let opacity = 1
-        if(arrayBuffer.byteLength >= 14) {
+        if (arrayBuffer.byteLength >= 14) {
           opacity = decodeAction(dataView.getUint8(offset))
           offset += 1
         }
