@@ -20,7 +20,7 @@ const gamepadSampler = {
         const id = 'gamepad-' + gamepad.index + '-' + gamepad.id
         const lastSample = gamepadSampler.controllers[id]
         const currentSample = {
-          id: id,
+          id,
           axes: gamepad.axes || [],
           buttons: gamepad.buttons.map((buttons) => { return buttons.value })
         }
@@ -162,12 +162,12 @@ const convertLowLevelEventToHigherLevelEvent = (event) => {
   const cloakPress = !!event.buttons[10] // Left Stick Click
   if (cloakPress !== controller.cloakPress) {
     controller.cloakPress = cloakPress
-    gamepadEvents.emit('cloak', controller);
+    gamepadEvents.emit('cloak', controller)
   }
   const eyeContactPress = !!event.buttons[11] // Right Stick Click
   if (eyeContactPress !== controller.eyeContactPress) {
     controller.eyeContactPress = eyeContactPress
-    gamepadEvents.emit('eyeContact', controller);
+    gamepadEvents.emit('eyeContact', controller)
   }
 }
 
@@ -220,9 +220,9 @@ window.attachGamepadInputToUser = (inputEmitter, user) => {
           {
             id: user.id,
             moveForce: user.moveForce,
-            moveAngle: moveAngle,
+            moveAngle,
             aimForce: user.aimForce,
-            aimAngle: aimAngle
+            aimAngle
           }
         )
       }

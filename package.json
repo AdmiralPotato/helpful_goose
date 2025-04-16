@@ -7,6 +7,7 @@
     "url": "git+https://github.com/AdmiralPotato/helpful_goose.git"
   },
   "scripts": {
+    "format": "standard --fix",
     "preinstall": "cd api && npm install",
     "start": "cd api && npm run start"
   },
