@@ -52,7 +52,7 @@ window.Vue.component('edit-user', {
       user: this.inputUser || {
         id: window.randomHash(4),
         name: 'Goose',
-        color: '#fff',
+        color: '#ffffff',
         controller: window.INPUT_TYPE_MOUSETOUCH,
         connected: false
       }

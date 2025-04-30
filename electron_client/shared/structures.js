@@ -369,7 +369,7 @@ const initGooseDataStructures = () => {
       //   uint8_t avatar,
       //   uint8_t name_length, on average 32,
       //   char name[name_length]
-      // } UserDetail = ~40 bytes
+      // } UserDetail = ~44 bytes
       encode (userDetails, index) {
         const scale = encodeNormalized16(userDetails.scale)
         const id = sanitizeUint(index || 0)
