@@ -1,11 +1,20 @@
 window.Vue.component('edit-user', {
-  template: `
+  template: /* html */ `
     <div class="edit-user">
       <div class="input-block">
         <label>
           <span>Name</span>
           <input
             v-model="user.name"
+          />
+        </label>
+      </div>
+      <div class="input-block">
+        <label>
+          <span>Color</span>
+          <input
+            type="color"
+            v-model="user.color"
           />
         </label>
       </div>
@@ -43,6 +52,7 @@ window.Vue.component('edit-user', {
       user: this.inputUser || {
         id: window.randomHash(4),
         name: 'Goose',
+        color: '#ffffff',
         controller: window.INPUT_TYPE_MOUSETOUCH,
         connected: false
       }

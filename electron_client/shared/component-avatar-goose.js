@@ -21,7 +21,7 @@ window.Vue.component('avatar-goose', {
         {},
         user,
         {
-          bodyDirection: (Math.abs(user.headAngle) > (Math.PI * 0.5)) ? 1 : -1,
+          bodyDirection: Math.abs(user.headAngle) > Math.PI * 0.5 ? 1 : -1,
           headTransform: `rotate(${headDegrees})`,
           leftEyeTransform: `
             translate(${eyeSlideX - eyeSlideXDistance} ${eyeSlideY})
@@ -36,12 +36,13 @@ window.Vue.component('avatar-goose', {
             scale(${user.combinedScale / 8})
           `,
           eyeContact: user.eyeContact,
-          style: 'opacity:' + user.opacity.toFixed(2)
+          style: 'opacity:' + user.opacity.toFixed(2),
+          color: user.color
         }
       )
     }
   },
-  template: /* svg */`
+  template: /* svg */ `
     <g
       class="avatar-goose"
       :transform="cursor.transform"
@@ -49,6 +50,7 @@ window.Vue.component('avatar-goose', {
     >
       <g
         class="goose-body"
+        :fill="cursor.color"
       >
         <use
           class="goose-neck-outline"
@@ -69,7 +71,7 @@ window.Vue.component('avatar-goose', {
         <use
           class="goose-neck-white"
           href="#goose-neck"
-          stroke="#fff"
+          :stroke="cursor.color"
           stroke-width="0.75"
           stroke-linejoin="round"
           stroke-linecap="round"
@@ -103,6 +105,7 @@ window.Vue.component('avatar-goose', {
         />
         <use
           href="#goose-head"
+          :fill="cursor.color"
         />
       </g>
       <g

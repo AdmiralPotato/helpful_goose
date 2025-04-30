@@ -25,7 +25,7 @@ const initGooseDataStructures = () => {
   const encodeNormalized16 = (axis) => Math.round(axis * uint16Max)
   const decodeNormalized16 = (value) => value / uint16Max
   const encodeAngle = (angle) => Math.round(((angle + pi) / tau) * uint16Max)
-  const decodeAngle = (value) => ((value / uint16Max) * tau) - pi
+  const decodeAngle = (value) => (value / uint16Max) * tau - pi
   const encodeAction = (action) => Math.round(Math.min(1, action) * uint8Max)
   const decodeAction = (value) => value / uint8Max
   const sanitizeUint = (value) => parseInt(Math.abs(value)) || 0
@@ -363,25 +363,30 @@ const initGooseDataStructures = () => {
     },
     UserDetail: {
       // typedef struct {
+      //   uint32_t color,
       //   uint16_t scale,
       //   uint8_t id,
       //   uint8_t avatar,
       //   uint8_t name_length, on average 32,
       //   char name[name_length]
-      // } UserDetail = ~40 bytes
+      // } UserDetail = ~44 bytes
       encode (userDetails, index) {
         const scale = encodeNormalized16(userDetails.scale)
         const id = sanitizeUint(index || 0)
         const avatar = sanitizeUint(userDetails.avatar)
         const stringByteArray = textEncoder.encode(userDetails.name)
         const nameLength = stringByteArray.byteLength
+        // Color is six digit hexadecimal String ex: #ffcc00
+        const color = parseInt(userDetails.color.slice(1), 16)
         if (nameLength > 255) {
           const errorMessage = `Input string must be fewer than 255 bytes long! Input: "${userDetails.name}"`
           throw new Error(errorMessage)
         }
-        const arrayBuffer = new ArrayBuffer(5)
+        const arrayBuffer = new ArrayBuffer(9)
         const dataView = new DataView(arrayBuffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
         let offset = 0
+        dataView.setUint32(offset, color)
+        offset += 4
         dataView.setUint16(offset, scale)
         offset += 2
         dataView.setUint8(offset, id)
@@ -399,6 +404,9 @@ const initGooseDataStructures = () => {
       decode (arrayBuffer) {
         const dataView = new DataView(arrayBuffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
         let offset = 0
+        const color =
+          '#' + dataView.getUint32(offset).toString(16).padStart(6, 0)
+        offset += 4
         const scale = decodeNormalized16(dataView.getUint16(offset))
         offset += 2
         const id = dataView.getUint8(offset)
@@ -408,11 +416,12 @@ const initGooseDataStructures = () => {
         const nameLength = dataView.getUint8(offset)
         offset += 1
         const stringBuffer = new Uint8Array(arrayBuffer)
-          .slice(offset, offset + nameLength)
+        .slice(offset, offset + nameLength)
         const name = textDecoder.decode(stringBuffer)
         offset += nameLength
 
         return {
+          color,
           scale,
           id,
           avatar,
@@ -524,7 +533,9 @@ const initGooseDataStructures = () => {
         const users = []
         const dataView = new DataView(arrayBuffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
         let offset = 0
-        const bounds = structures.Bounds.decode(new Uint8Array(arrayBuffer).slice(offset).buffer)
+        const bounds = structures.Bounds.decode(
+          new Uint8Array(arrayBuffer).slice(offset).buffer
+        )
         offset += bounds.byteLength
         const cursorRadius = decodeNormalized16(dataView.getUint16(offset))
         offset += 2

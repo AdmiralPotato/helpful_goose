@@ -104,6 +104,7 @@ function createInstance (
           inputAimAngle: null,
           inputAimForce: null,
           inputEyeContactPress: false,
+          color: user.color,
           cloaked: false,
           cloakInputThisFrame: false,
           cloakInputLastFrame: false,
@@ -136,6 +137,7 @@ function createInstance (
           userAlreadyInSocket,
           user
         )
+        session.updateCompleteGameStateForAllUsers()
       } else {
         console.error('Cheating! Someone is trying to become another connected user!')
       }

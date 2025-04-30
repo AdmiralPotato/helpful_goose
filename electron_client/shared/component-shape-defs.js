@@ -1,12 +1,11 @@
 window.Vue.component('shape-defs', {
-  template: `
+  template: /* svg */ `
     <g class="shape-defs">
       <defs>
         <g
           id="goose-head-circle"
         >
           <ellipse
-            fill="#fff"
             rx="1"
             ry="1"
           />
@@ -29,7 +28,6 @@ window.Vue.component('shape-defs', {
         </g>
         <clipPath id="goose-head-mask">
           <ellipse
-            fill="#fff"
             rx="1.1"
             ry="1.1"
           />
@@ -38,7 +36,6 @@ window.Vue.component('shape-defs', {
           id="goose-body"
         >
           <ellipse
-            fill="#fff"
             cx="0.625"
             rx="1.25"
             ry="0.75"
