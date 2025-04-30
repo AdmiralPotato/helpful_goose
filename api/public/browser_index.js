@@ -54,7 +54,7 @@ window.app = new window.Vue({
       console.log(`Removed user:${user.id} with controller:${user.controller}`)
     }
   },
-  template: `
+  template: /* html */ `
     <div id="appTarget">
       <page-main
           :users="users"
