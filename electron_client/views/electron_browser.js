@@ -1,6 +1,5 @@
-window.app = new window.Vue({
-  el: '#app',
-  data: {
+const app = window.Vue.createApp({
+  data: () => ({
     bounds: {
       x: 0,
       y: 0,
@@ -8,7 +7,7 @@ window.app = new window.Vue({
       height: window.innerHeight
     },
     users: []
-  },
+  }),
   computed: {
     viewBox () {
       return [
@@ -41,6 +40,8 @@ window.app = new window.Vue({
     </svg>
   `
 })
+window.registerDeferredComponents(app)
+window.app = app.mount('body')
 
 window.updateBounds = (bounds) => {
   window.app.bounds = bounds

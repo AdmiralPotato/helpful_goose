@@ -1,4 +1,4 @@
-window.Vue.component('page-main', {
+window.deferComponentRegistration('page-main', {
   props: {
     users: Array,
     localUsers: Object,

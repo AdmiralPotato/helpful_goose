@@ -16,3 +16,11 @@ window.yAxisSortedUsers = (users) => {
   return users.slice()
     .sort((a, b) => a.y - b.y)
 }
+
+const deferredComponentMap = {}
+window.deferComponentRegistration = (componentName, componentOptions) => {
+  deferredComponentMap[componentName] = componentOptions
+}
+window.registerDeferredComponents = (vueAppInstance) => {
+  Object.entries(deferredComponentMap).forEach(([componentName, componentOptions]) => vueAppInstance.component(componentName, componentOptions))
+}

@@ -1,4 +1,4 @@
-window.Vue.component('shape-defs', {
+window.deferComponentRegistration('shape-defs', {
   template: /* svg */ `
     <g class="shape-defs">
       <defs>

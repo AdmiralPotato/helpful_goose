@@ -1,4 +1,4 @@
-window.Vue.component('edit-user', {
+window.deferComponentRegistration('edit-user', {
   template: /* html */ `
     <div class="edit-user">
       <div class="input-block">

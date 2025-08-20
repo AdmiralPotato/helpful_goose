@@ -12,9 +12,8 @@ const socket = window.io.connect(
   }
 )
 
-window.app = new window.Vue({
-  el: '#appTarget',
-  data: {
+const app = window.Vue.createApp({
+  data: () => ({
     editingUser: undefined,
     addUserMode: false,
     localUsers: {},
@@ -23,7 +22,7 @@ window.app = new window.Vue({
       height: 720
     },
     users: []
-  },
+  }),
   methods: {
     getUserById: function (id) {
       return Object.values(window.app.localUsers).filter((user) => { return user.id === id }).pop()
@@ -97,6 +96,8 @@ window.app = new window.Vue({
     </div>
   `
 })
+window.registerDeferredComponents(app)
+window.app = app.mount('body')
 
 const inputEmitter = structures.createStructureEmitter(socket, base64ArrayBuffer)
 

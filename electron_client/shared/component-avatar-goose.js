@@ -1,4 +1,4 @@
-window.Vue.component('avatar-goose', {
+window.deferComponentRegistration('avatar-goose', {
   props: {
     user: {
       type: Object,
