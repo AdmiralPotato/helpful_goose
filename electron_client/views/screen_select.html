@@ -5,7 +5,7 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>Where is Goose's home?</title>
     <link rel="stylesheet" href="./styles.css">
 </head>
 <body id="screen-select-page">
@@ -13,40 +13,13 @@
         <div class="modal-header">
             <h1>Where is Goose's home?</h1>
         </div>
-        <p
-            v-if="!displays.length"
-        >Loading</p>
-        <div
-            v-else
-        >
-            <p
-                class="error"
-                style="visibility: hidden"
-                :style="{
-                    visibility: showError ? 'visible' : 'hidden'
-                }"
-            >Select a screen to proceed</p>
-            <div
-                class="screen-holder"
-            >
-                <label
-                    v-for="display in displays"
-                    :key="display.id"
-                    class="screen-select"
-                    :class="{
-                        active: displayId === display.id
-                    }"
-                >
-                    <input
-                        type="radio"
-                        :value="display.id"
-                        v-model="displayId"
-                    >
-                    <img
-                        :src="display.thumbnail"
-                    />
-                </label>
-            </div>
+        <div class="flex">
+            <p class="flex-center">
+                🏠<br />
+                Move this window to the screen<br />
+                where you want the Goose to live,<br />
+                then click "Confirm"
+            </p>
         </div>
         <div class="modal-footer">
             <button

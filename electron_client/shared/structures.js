@@ -416,7 +416,7 @@ const initGooseDataStructures = () => {
         const nameLength = dataView.getUint8(offset)
         offset += 1
         const stringBuffer = new Uint8Array(arrayBuffer)
-        .slice(offset, offset + nameLength)
+          .slice(offset, offset + nameLength)
         const name = textDecoder.decode(stringBuffer)
         offset += nameLength
 

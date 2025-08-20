@@ -1,5 +1,5 @@
 require('dotenv').config()
-const path = require('path')
+const path = require('node:path')
 const base64ArrayBuffer = require('base64-arraybuffer')
 const structures = require('./shared/structures')
 const {
@@ -8,7 +8,6 @@ const {
   Tray,
   app,
   clipboard,
-  desktopCapturer,
   ipcMain,
   screen
 } = require('electron')
@@ -31,14 +30,14 @@ const webPreferences = {
   enableRemoteModule: false
 }
 
-let activeDisplayId = null
+let activeDisplay = null
 let overlayWindow = null
 
 let boundsLoopInterval = null
 function getScreenBounds () {
   const displays = screen.getAllDisplays()
   const currentDisplay = (
-    (activeDisplayId && displays.find((display) => display.id === activeDisplayId)) ||
+    (activeDisplay && displays.find((display) => display.id === activeDisplay.id)) ||
     displays[0] // fall back to the... uhh... most default? Probably?
   )
   let result = {
@@ -49,8 +48,8 @@ function getScreenBounds () {
   }
   if (currentDisplay) {
     // if a previously selected screen goes away, ask user to pick a new one
-    if (activeDisplayId && activeDisplayId !== currentDisplay.id) {
-      activeDisplayId = null
+    if (activeDisplay && activeDisplay.id !== currentDisplay.id) {
+      activeDisplay = currentDisplay
       openScreenSelectWindow()
     }
     result = {
@@ -179,7 +178,7 @@ function initNetwork () {
       changeStatus: { label: 'Disconnect' }
     })
   })
-  socket.on('disconnect', (disconnectReason) => {
+  socket.on('disconnect', (_disconnectReason) => {
     rebuildTrayMenu({
       copySessionLink: { enabled: false },
       sessionStatus: { label: 'Status: Disconnected' },
@@ -323,39 +322,17 @@ function startOverlay (socket) {
 }
 
 let screenSelectWindow = null
-function sendThumbnailsToScreenSelectWindow () {
+setInterval(function updateActiveScreen () {
   if (screenSelectWindow) {
-    return desktopCapturer.getSources({ types: ['screen'] })
-      .then((sources) => {
-        // screenSelectWindow may have closed since the promise was made and now resolved
-        if (screenSelectWindow) {
-          const displaysAndThumbnails = sources.map((source) => {
-            return {
-              // Why is `source.display_id` a string when `screen.getAllDisplays()[n].id` is a number? Why?
-              id: parseInt(source.display_id, 10),
-              thumbnail: source.thumbnail.toDataURL()
-            }
-          })
-          screenSelectWindow.webContents.executeJavaScript(
-            `updateDisplays(${JSON.stringify(displaysAndThumbnails)})`
-          )
-          // update the preview at 10fps while the window is open
-          setTimeout(sendThumbnailsToScreenSelectWindow, 1000 / 10)
-        }
-      })
+    activeDisplay = screen.getDisplayNearestPoint(screenSelectWindow.getBounds())
   }
-}
-function handleScreenSelect (event, displayId) {
-  activeDisplayId = displayId
+}, 1000 / 30)
+function handleScreenSelect () {
   if (screenSelectWindow) {
     screenSelectWindow.close()
     screenSelectWindow = null
   }
 }
-ipcMain.on(
-  'screenSelectLoaded', // send data a gain after refreshes for styling polish
-  sendThumbnailsToScreenSelectWindow
-)
 ipcMain.on(
   'screenSelect',
   handleScreenSelect
@@ -365,13 +342,18 @@ function openScreenSelectWindow () {
     // closing an old one and opening a new one should put it on top if user has lost it
     screenSelectWindow.close()
   }
+  const { width: displayWidth, height: displayHeight, x, y } = activeDisplay.bounds
+  const width = 640
+  const height = 372
   screenSelectWindow = new BrowserWindow({
-    width: 640,
-    height: 372,
+    width,
+    height,
     frame: false,
     resizable: false,
     icon: windowIconPath,
     transparent: true,
+    x: x + ((displayWidth / 2) - (width / 2)),
+    y: y + ((displayHeight / 2) - (height / 2)),
     webPreferences
   })
   screenSelectWindow.loadFile(screenSelectView)
@@ -388,6 +370,7 @@ function handleAppReady (whenReadyEvent) {
   initNetwork()
   const displays = screen.getAllDisplays()
   if (displays.length > 1) {
+    activeDisplay = screen.getPrimaryDisplay()
     openScreenSelectWindow()
   }
   startOverlay(socket)
@@ -406,7 +389,7 @@ app.on('window-all-closed', (closeEvent) => {
   app.quit()
 })
 
-process.on('exit', (code) => {
+process.on('exit', (_code) => {
   if (tray) {
     tray.destroy()
   }
